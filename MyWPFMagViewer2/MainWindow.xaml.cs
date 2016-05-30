@@ -27,6 +27,7 @@ namespace MyWPFMagViewer2
         private PointsVisual3D pointsVisual;
         private Point3DCollection points;
 
+
         public int NumberOfPoints
         {
             get
@@ -57,24 +58,39 @@ namespace MyWPFMagViewer2
         {
             InitializeComponent();
             NumberOfPoints = 100;
+            System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+            dispatcherTimer.Tick += dispatcherTimer_Tick;
+            //dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Interval = new TimeSpan(0,0,0,0,100);//millisec
 
-            if (Points == null ||Points.Count != this.NumberOfPoints)
-            {
-                Points = new Point3DCollection(GeneratePoints(NumberOfPoints,5));
-                Debug.Print("After GeneratePoints, NumberOfPoints = " + NumberOfPoints + " Points.Count = " + Points.Count);
-            }
+            dispatcherTimer.Start();
 
-            if (pointsVisual == null)
-            {
-                pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = 6 };
-               pointsVisual.Points = Points;
 
-                vp_raw.Children.Add(pointsVisual);
-            }
+            //if (Points == null ||Points.Count != this.NumberOfPoints)
+            //{
+            //    //time parameter in millisec used to animate dot positions
+            //    Points = new Point3DCollection(GeneratePoints(NumberOfPoints,watch.ElapsedMilliseconds*0.001));
+            //    Debug.Print("After GeneratePoints, NumberOfPoints = " + NumberOfPoints + " Points.Count = " + Points.Count);
+            //}
+
+            //if (pointsVisual == null)
+            //{
+            //    pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = 6 };
+            //   pointsVisual.Points = Points;
+
+            //    vp_raw.Children.Add(pointsVisual);
+            //}
         }
 
         public static IEnumerable<Point3D> GeneratePoints(int n, double time)
         {
+            //Purpose: Generate animated array of points
+            //Inputs:
+            //  n = Integer denoting number of points to display
+            //  time = elapsed time in msec since start of program - used to animate point positions
+
+            Debug.Print("GeneratePoints time = " + time);
+
             const double R = 2;
             const double Q = 0.5;
             for (int i = 0; i < n; i++)
@@ -88,6 +104,40 @@ namespace MyWPFMagViewer2
                     yield return pt;
                 }
             }
+        }
+
+        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+
+            //if (Points == null || Points.Count != this.NumberOfPoints)
+            {
+                //time parameter in millisec used to animate dot positions
+                Points = new Point3DCollection(GeneratePoints(NumberOfPoints, 
+                    (double)(DateTime.Now.Millisecond)/10));
+                Debug.Print("After GeneratePoints, NumberOfPoints = " + NumberOfPoints + " Points.Count = " + Points.Count);
+
+                if (pointsVisual != null)
+                {
+                    pointsVisual.Points.Clear();
+                    pointsVisual.Points = Points;
+                }
+                else
+                {
+                    pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = 6 };
+                    pointsVisual.Points = Points;
+
+                    vp_raw.Children.Add(pointsVisual);
+
+                }
+            }
+
+            //if (pointsVisual == null)
+            //{
+            //    pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = 6 };
+            //    pointsVisual.Points = Points;
+
+            //    vp_raw.Children.Add(pointsVisual);
+            //}
         }
 
     }
