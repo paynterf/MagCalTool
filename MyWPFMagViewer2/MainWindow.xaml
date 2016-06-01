@@ -9,7 +9,7 @@
         Title="MainWindow" Height="350" Width="525">
     <Grid>
 
-        <h:HelixViewport3D x:Name="vp_raw" Margin="0"/>
+        <h:HelixViewport3D x:Name="vp_raw" Margin="0" MouseDown="vp_raw_MouseDown"/>
 
     </Grid>
 </Window>
