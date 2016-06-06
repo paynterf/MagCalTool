@@ -22,12 +22,12 @@ namespace MyWPFMagViewer2
     public partial class MainWindow : Window
     {
         private int m_numberOfPoints;
-        private PointsVisual3D m_pointsVisual;
-        private Point3DCollection m_points;
-        private Point3DCollection m_selpoints;
-        private PointsVisual3D selPointsVisual;
-        private const int POINTSIZE = 6;
-        private List<int> m_selidxlist = new List<int>();
+        private PointsVisual3D m_pointsVisual; //3D point cloud for magnetometer points
+        private PointsVisual3D selPointsVisual;//contains selected points from m_pointsVisual
+        private Point3DCollection m_points;//backing store for NumberOfPoints property
+        private Point3DCollection m_selpoints;//Point3DCollection used during xfer of selected points
+        private const int POINTSIZE = 6; //display size for magnetometer points
+        private List<int> m_selidxlist = new List<int>();//contains indices into mag points collection for selected points
 
         public int NumberOfPoints
         {
@@ -59,32 +59,19 @@ namespace MyWPFMagViewer2
         {
             InitializeComponent();
             NumberOfPoints = 100;
+            Points = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
 
-            if (Points == null || Points.Count != this.NumberOfPoints)
-            {
-                //time parameter in millisec used to animate dot positions
-                //Points = new Point3DCollection(GeneratePoints(NumberOfPoints,
-                //    (double)(DateTime.Now.Millisecond) / 10));
-                Points = new Point3DCollection(GeneratePoints(NumberOfPoints,
-                    10.3));
-                //Debug.Print("After GeneratePoints, NumberOfPoints = " + NumberOfPoints + " Points.Count = " + Points.Count);
+            m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
+            m_pointsVisual.Points = Points;
+            m_pointsVisual.SetName("magpoints");
+            vp_raw.Children.Add(m_pointsVisual);
 
-                if (m_pointsVisual != null)
-                {
-                    m_pointsVisual.Points.Clear();
-                    m_pointsVisual.Points = Points;
-                }
-                else
-                {
-                    m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
-                    m_pointsVisual.Points = Points;
-                    m_pointsVisual.SetName("magpoints");
-
-                    vp_raw.Children.Add(m_pointsVisual);
-                }
-            }
+            selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 2 * POINTSIZE };
+            selPointsVisual.SetName("selpoints");
+            vp_raw.Children.Add(selPointsVisual);
         }
 
+        //this function is just to generate a static set of test points
         public static IEnumerable<Point3D> GeneratePoints(int n, double time)
         {
             //Purpose: Generate animated array of points
@@ -101,7 +88,6 @@ namespace MyWPFMagViewer2
                 double t = Math.PI * 2 * i / (n - 1);
                 double u = (t * 24) + (time * 5);
                 var pt = new Point3D(Math.Cos(t) * (R + (Q * Math.Cos(u))), Math.Sin(t) * (R + (Q * Math.Cos(u))), Q * Math.Sin(u));
-                //yield return pt2;
                 if (i > 0 && i < n - 1)
                 {
                     yield return pt;
@@ -120,11 +106,11 @@ namespace MyWPFMagViewer2
                 int selcount = selPointsVisual.Points.Count;
                 for (int i = 0; i < selcount; i++)
                 {
-                    Point3D pt = selPointsVisual.Points[i];
-                    Debug.Print("selected pt2 at index 1 = ("
-                        + pt.X.ToString("F2") + ", "
-                        + pt.Y.ToString("F2") + ", "
-                        + pt.Z.ToString("F2") + ")");
+                    Point3D selpt = selPointsVisual.Points[i];
+                    Debug.Print("selected pt at index " + i + " = ("
+                        + selpt.X.ToString("F2") + ", "
+                        + selpt.Y.ToString("F2") + ", "
+                        + selpt.Z.ToString("F2") + ")");
                 }
             }
             else
@@ -132,7 +118,7 @@ namespace MyWPFMagViewer2
                 Debug.Print("No selected points exist");
             }
 
-        //Step1:  Get the current transformation matrix
+            //Step1:  Get the current transformation matrix
             //get a reference to the visual element containing datapoints
             int chldcount = vp_raw.Children.Count;
             PointsVisual3D p3dvis = null; //temp object
@@ -150,15 +136,15 @@ namespace MyWPFMagViewer2
 
             //use the temp object to get the transformation matrix for the parent viewport
             Matrix3D m3D = p3dvis.GetViewportTransform();
-            //Debug.Print(m3D.ToString());
 
+            //Debug.Print(m3D.ToString());
             //Point3D xfrmpt = m3D.Transform(new Point3D(0,0,0));
             //string ctrptstr = xfrmpt.X.ToString("F2") + ", "
             //    + xfrmpt.Y.ToString("F2") + ", "
             //    + xfrmpt.Z.ToString("F2");
             //Debug.Print("(0,0,0) transforms to " + ctrptstr);
 
-        //Step2: transfer any currently selected points back to main points list unless SHIFT key is down
+            //Step2: transfer any currently selected points back to main points list unless SHIFT key is down
             if ((Keyboard.Modifiers & ModifierKeys.Shift) != ModifierKeys.Shift)
             {
                 if (selPointsVisual != null)
@@ -171,55 +157,53 @@ namespace MyWPFMagViewer2
                         for (int i = 0; i < selcount; i++)
                         {
                             //get selected point 
-                            Point3D pt = selPointsVisual.Points[i];
-                            string ptstr = pt.X.ToString("F2") + ","
-                                            + pt.Y.ToString("F2") + ","
-                                            + pt.Z.ToString("F2");
+                            Point3D selpt = selPointsVisual.Points[i];
+                            string selptstr = selpt.X.ToString("F2") + ","
+                                            + selpt.Y.ToString("F2") + ","
+                                            + selpt.Z.ToString("F2");
 
-                            Debug.Print("Moving selected pt2 ("+ptstr+") to pointsVisual.  Before add, pt2 count is "
-                                + magptcount);
+                            Debug.Print("Moving selected pt (" + selptstr + ") to pointsVisual.  Before add, pt count is "
+                                + m_pointsVisual.Points.Count);
 
                             //add it to pointsVisual
                             m_pointsVisual.Points.Add(selPointsVisual.Points[i]);
                             int newcount = m_pointsVisual.Points.Count;
 
                             //check that point got added properly
-                            Point3D newpt = m_pointsVisual.Points[newcount-1];
-                            string newptstr = pt.X.ToString("F2") + ","
-                                            + pt.Y.ToString("F2") + ","
-                                            + pt.Z.ToString("F2");
+                            Point3D newpt = m_pointsVisual.Points[newcount - 1];
+                            string newptstr = newpt.X.ToString("F2") + ","
+                                            + newpt.Y.ToString("F2") + ","
+                                            + newpt.Z.ToString("F2");
 
-                            Debug.Print("pt2 ("+ptstr+") added to pointsVsiual at index "+ (newcount-1)
-                                +". Count now " + newcount);
+                            Debug.Print("point (" + newptstr + ") added to pointsVsiual at index " + (newcount - 1)
+                                + ". Count now " + newcount);
                         }
                         selPointsVisual.Points.Clear();
                     }
                 }
             }
 
-        //Step3: copy pointsVisual.Points index of any selected points to m_selidxlist
+            //Step3: copy pointsVisual.Points index of any selected points to m_selidxlist
             m_selidxlist.Clear();
             int ptidx = 0;
-            //List<int> m_selidxlist = new List<int>();
-            foreach (Point3D pt in m_pointsVisual.Points)
+            foreach (Point3D vispt in m_pointsVisual.Points)
             {
-                Point3D xpt = m3D.Transform(pt);
-                double distsq = (mousept.X-xpt.X)*(mousept.X-xpt.X) + (mousept.Y-xpt.Y)*(mousept.Y-xpt.Y);
+                Point3D xpt = m3D.Transform(vispt);
+                double distsq = (mousept.X - xpt.X) * (mousept.X - xpt.X) + (mousept.Y - xpt.Y) * (mousept.Y - xpt.Y);
                 double dist = Math.Sqrt(distsq);
                 if (dist < 5)
                 {
                     m_selidxlist.Add(ptidx); //save the index of the point to be removed
 
-                    //p3dvis.Color = Colors.Yellow;
-                    string ptstr = pt.X.ToString("F2") + ","
-                        + pt.Y.ToString("F2") + ","
-                        + pt.Z.ToString("F2");
+                    string visptstr = vispt.X.ToString("F2") + ","
+                        + vispt.Y.ToString("F2") + ","
+                        + vispt.Z.ToString("F2");
 
                     string xfrmptstr = xpt.X.ToString("F2") + ", "
                         + xpt.Y.ToString("F2") + ", "
                         + xpt.Z.ToString("F2");
                     Debug.Print("dist = " + dist.ToString("F2") + ": mousepoint " + mousept.ToString()
-                        + " matches with magpt[" + ptidx + "] ( " + ptstr + "), " 
+                        + " matches with magpt[" + ptidx + "] ( " + visptstr + "), "
                         + "which transforms to " + xfrmptstr);
                 }
 
@@ -227,66 +211,58 @@ namespace MyWPFMagViewer2
             }
 
             //move selected points from pointsVisual3D to selpointsVisual3D
-            Debug.Print("Selected Index List Contains " + m_selidxlist.Count+" items");
-            int count = m_selidxlist.Count;
-            for (int i = count-1; i >= 0 ; i--)
+            int selidxcount = m_selidxlist.Count;
+            Debug.Print("Selected Index List Contains " + selidxcount + " items");
+
+            if (selidxcount > 0)
             {
-                //copy the point to the selected points PointsVisual3D collection
-                if (m_selpoints == null)
+
+                int newcount = 1;
+                //06/06/16 new try at moving selected points from m_pointsVisual to selPointsVisual
+                for (int selidx = selidxcount - 1; selidx >= 0; selidx--)//have to work from top down to avoid crashes
                 {
-                    m_selpoints = new Point3DCollection();
-                    for (int selidx = 0; selidx < count; selidx++)
-                    {
-                        //retrieve selected point from pointsVisual collection
-                        int visptidx = m_selidxlist[selidx]; //this is the index into pointsVisual.Points collection
-                        Point3D selvispt = new Point3D();
-                        selvispt.X = m_pointsVisual.Points[visptidx].X;
-                        selvispt.Y = m_pointsVisual.Points[visptidx].Y;
-                        selvispt.Z = m_pointsVisual.Points[visptidx].Z;
+                    //retrieve selected point from pointsVisual collection
+                    int visptidx = m_selidxlist[selidx]; //this is the index into pointsVisual.Points collection
+                    Point3D selvispt = new Point3D();
+                    selvispt.X = m_pointsVisual.Points[visptidx].X;
+                    selvispt.Y = m_pointsVisual.Points[visptidx].Y;
+                    selvispt.Z = m_pointsVisual.Points[visptidx].Z;
+                    string selvisptstr = selvispt.X.ToString("F2") + ","
+                                    + selvispt.Y.ToString("F2") + ","
+                                    + selvispt.Z.ToString("F2");
+                    Debug.Print("selected pt (" + selvisptstr + ") added to m_selpoints Collection. Count now "
+                        + newcount);
 
-                        //add the point to 
-                        m_selpoints.Add(selvispt);
+                    //add this point to selPointsVisual
+                    selPointsVisual.Points.Add(selvispt);
 
-                        int newcount = m_selpoints.Count;
-                        string ptstr2 = selvispt.X.ToString("F2") + ","
-                                        + selvispt.Y.ToString("F2") + ","
-                                        + selvispt.Z.ToString("F2");
+                    //testing - print out added point
+                    int addedcount = selPointsVisual.Points.Count;
+                    Point3D addedpt = new Point3D();
+                    addedpt = selPointsVisual.Points[addedcount - 1];
+                    string addedptstr = addedpt.X.ToString("F2") + ","
+                                    + addedpt.Y.ToString("F2") + ","
+                                    + addedpt.Z.ToString("F2");
+                    Debug.Print("added pt (" + addedptstr + ") added to selPointsVisual. Count now "
+                        + addedcount);
 
-                        Debug.Print("pt2 (" + ptstr2 + ") added to m_selpoints Collection. Count now " + newcount);
-                    }
-
-                    selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 2* POINTSIZE };
-                    selPointsVisual.Points = m_selpoints;
-                    selPointsVisual.SetName("Selected Points");
-                    vp_raw.Children.Add(selPointsVisual);
-                }
-                else
-                {
-                    selPointsVisual.Points.Add(m_pointsVisual.Points[m_selidxlist[i]]);
+                    //remove this point from m_pointsVisual collection
+                    Debug.Print("removing point at m_pointsVisual[" + m_selidxlist[selidx] + "]");
+                    m_pointsVisual.Points.RemoveAt(m_selidxlist[selidx]);
                 }
 
                 //DEBUG!!
+                Debug.Print("\r\n selPointsVisual Points collection contains the following points");
                 foreach (Point3D pt3 in selPointsVisual.Points)
                 {
                     string newptstr3 = pt3.X.ToString("F2") + ","
                                     + pt3.Y.ToString("F2") + ","
                                     + pt3.Z.ToString("F2");
-                    Debug.Print("Selected pt2 (" + newptstr3 + ")");
+                    Debug.Print("Selected pt (" + newptstr3 + ")");
                 }
-
-                //Point3D pt = pointsVisual.Points[i];
-                Point3D pt = m_pointsVisual.Points[m_selidxlist[i]];
-                string ptstr = pt.X.ToString("F2") + ","
-                                + pt.Y.ToString("F2") + ","
-                                + pt.Z.ToString("F2");
-
-                Debug.Print("pt2 (" + ptstr + ") added to m_selpoints Collection.");
-
-                //p3dvis.Points.RemoveAt(m_selidxlist[i]);
-                Debug.Print("removing point at " + m_selidxlist[i]);
-                m_pointsVisual.Points.RemoveAt(m_selidxlist[i]);
             }
-            vp_raw.UpdateLayout();
+
+            vp_raw.UpdateLayout();//refresh the 'raw' view
         }
     }
 }
