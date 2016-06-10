@@ -4,12 +4,58 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MyWPFMagViewer2"
-        xmlns:h="http://helix-toolkit.org/wpf" x:Class="MyWPFMagViewer2.MainWindow"
+        xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Magnetometer Calibration Utility" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded">
     <Grid>
 
-        <h:HelixViewport3D x:Name="vp_raw" Margin="0" MouseDown="vp_raw_MouseDown"/>
+        <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB"/>
+        <h:HelixViewport3D HorizontalAlignment="Left" Margin="-80,-115,0,0" VerticalAlignment="Top"/>
+        <h:HelixViewport3D x:Name="vp_cal" Margin="560,290,32,130" MouseDown="vp_cal_MouseDown" CoordinateSystemHorizontalPosition="Center" CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB"/>
+        <Label x:Name="label" Content="Octave Executable Location" HorizontalAlignment="Left" Margin="45,9,0,0" VerticalAlignment="Top" Width="160"/>
+        <TextBox x:Name="tbOctavePath" HorizontalAlignment="Left" Height="24" Margin="235,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="585"/>
+        <Button x:Name="btn_BrowseOctave" Content="Browse" HorizontalAlignment="Left" Margin="840,11,0,0" VerticalAlignment="Top" Width="75" Click="btn_BrowseOctave_Click"/>
+        <Label x:Name="label_Copy" Content="Octave Script Folder" HorizontalAlignment="Left" Margin="45,42,0,0" VerticalAlignment="Top" Width="160"/>
+        <TextBox x:Name="tbOctaveScriptFolder" HorizontalAlignment="Left" Height="24" Margin="235,43,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="585"/>
+        <Button x:Name="btn_BrowseScript" Content="Browse" HorizontalAlignment="Left" Margin="840,44,0,0" VerticalAlignment="Top" Width="75" Click="btn_BrowseScript_Click"/>
+        <GroupBox x:Name="groupBox" Header="Serial Port Comms" HorizontalAlignment="Left" Margin="30,85,0,0" VerticalAlignment="Top" Height="170" Width="175">
+            <Grid HorizontalAlignment="Left" Height="150" Margin="0,10,-2,-12" VerticalAlignment="Top" Width="195">
+                <ComboBox x:Name="cbox_CommPort" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Width="82"/>
+                <Label x:Name="label1" Content="Comm Port" HorizontalAlignment="Left" Margin="96,7,0,0" VerticalAlignment="Top" Padding="2"/>
+                <ComboBox x:Name="cbox_BaudRate" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Width="82">
+                    <ComboBoxItem  Name="cbi1">300</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi2">600</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi3">1200</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi5">2400</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi6">4800</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi7">9600</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi8">14400</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi9">19200</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi10">28800</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi11">38400</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi12">56000</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi13">57600</ComboBoxItem>
+                    <ComboBoxItem  Name="cbi14">115200</ComboBoxItem>
+                </ComboBox>
+
+                <Label x:Name="label2" Content="Baud Rate" HorizontalAlignment="Left" Margin="96,33,0,0" VerticalAlignment="Top" Padding="2"/>
+                <Button x:Name="btn_CommPortOpen" Content="Open Port" HorizontalAlignment="Left" Margin="10,58,0,70" Padding="1" Width="82" Click="btn_CommPortOpen_Click"/>
+                <Button x:Name="btn_CommPortClose" Content="Close Port" HorizontalAlignment="Left" Margin="10,83,0,0" VerticalAlignment="Top" Width="82" Padding="1" Height="22" Click="btn_CommPortClose_Click"/>
+                <Button x:Name="btn_RefreshPorts" Content="Refresh Ports" HorizontalAlignment="Left" Margin="10,107,0,0" VerticalAlignment="Top" Width="82" Padding="1" Click="btn_RefreshPorts_Click"/>
+            </Grid>
+        </GroupBox>
+        <Label x:Name="label3" Content="Raw Magnetometer Data" HorizontalAlignment="Left" Margin="235,76,0,0" VerticalAlignment="Top" Width="160" Height="21" Padding ="2"/>
+        <Label x:Name="label4" Content="Number of Lines" HorizontalAlignment="Left" Margin="415,76,0,0" VerticalAlignment="Top" Height="21" Padding ="2"/>
+        <Label x:Name="lbl_NumRtbLines" Content="None" HorizontalAlignment="Left" Margin="519,76,0,0" VerticalAlignment="Top" Height="21" Padding ="2"/>
+        <Button x:Name="btn_Import" Content="Import..." HorizontalAlignment="Left" Margin="840,95,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_Import_Click"/>
+        <Button x:Name="btn_SaveAs" Content="Save..." HorizontalAlignment="Left" Margin="840,122,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_SaveAs_Click"/>
+        <Button x:Name="btn_ClearMagData" Content="Clear Data" HorizontalAlignment="Left" Margin="840,150,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_ClearMagData_Click_1"/>
+        <Button x:Name="btn_UpdateRawView" Content="Update Raw View"  HorizontalAlignment="Left" Margin="840,181,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_UpdateRawView_Click"/>
+        <TextBox x:Name="tbox_RawMagData" HorizontalAlignment="Left" Height="153" Margin="235,102,0,0" TextWrapping="Wrap" 
+                 Text="TextBox" VerticalAlignment="Top" Width="585"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        <Button x:Name="btn_Compute" Content="Compute.." HorizontalAlignment="Left" Margin="469,413,0,0" VerticalAlignment="Top" Width="75" Click="btn_Compute_Click"/>
 
     </Grid>
 </Window>

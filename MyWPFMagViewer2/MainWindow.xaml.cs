@@ -7,6 +7,7 @@ using System.Windows.Media.Media3D;
 using System.Diagnostics;
 using System.Text;
 using System.Windows.Input;
+using System.Windows.Controls;
 
 //05/31/16 experiment
 using HelixToolkit.Wpf.SharpDX;
@@ -25,9 +26,34 @@ namespace MyWPFMagViewer2
         private PointsVisual3D m_pointsVisual; //3D point cloud for magnetometer points
         private PointsVisual3D selPointsVisual;//contains selected points from m_pointsVisual
         private Point3DCollection m_points;//backing store for NumberOfPoints property
-        private Point3DCollection m_selpoints;//Point3DCollection used during xfer of selected points
         private const int POINTSIZE = 6; //display size for magnetometer points
         private List<int> m_selidxlist = new List<int>();//contains indices into mag points collection for selected points
+        private PointsVisual3D m_CalpointsVisual; //3D point cloud for calibrated magnetometer points
+
+        //06/07/16 copied in from MagManager2
+        CommPortManager commMgr = new CommPortManager();
+        private Octave octave; //Octave object described in Octave.cs
+        private string OctaveRawDataFile = "rawpts.txt"; //temp file to pass raw viewport points to Octave 
+        private double[][] Caldata; //calibrated magnetometer data from Octave pass
+
+        string transType = string.Empty;
+        private bool bOctaveScriptFileExists = false;
+        private bool bOctaveFunctionFileExists = false;
+        private bool bOctaveExeFileExists = false;
+        //private string displaystr = ""; //added for mbox display of interim results
+        const string quote = "\""; //used to insert double-quote characters
+        const string OctaveScriptFile = "MagCalScript.m";
+        const string OctaveFunctionFile = "MgnCalibration.m";
+
+
+        public bool bStringAvail = false;
+        public bool bPtArrayUpdated = false;
+        private bool bShowRaw = true;
+        private bool bShowComp = false;
+        //private bool bShowRefCircles = false;
+        private bool bCommPortOpen = false;
+        private const int MIN_COMP_POINTS = 100;
+
 
         public int NumberOfPoints
         {
@@ -61,6 +87,16 @@ namespace MyWPFMagViewer2
             NumberOfPoints = 100;
             Points = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
 
+            //06/08/16 experiment to populate textblock control
+            tbox_RawMagData.Text = string.Empty;
+            int linecount = 0;
+            foreach (Point3D pt in Points)
+            {
+                linecount++;
+                tbox_RawMagData.Text += pt.ToString() + Environment.NewLine;
+            }
+            lbl_NumRtbLines.Content = linecount.ToString();
+
             m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
             m_pointsVisual.Points = Points;
             m_pointsVisual.SetName("magpoints");
@@ -69,6 +105,48 @@ namespace MyWPFMagViewer2
             selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 2 * POINTSIZE };
             selPointsVisual.SetName("selpoints");
             vp_raw.Children.Add(selPointsVisual);
+
+            //06/07/16 experiment with 2nd viewport window
+            Point3DCollection CalPoints = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
+            m_CalpointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
+            vp_cal.Title = "Calibrated Magnetometer Points";
+            m_CalpointsVisual.Points = CalPoints;
+            m_CalpointsVisual.SetName("calpoints");
+            vp_cal.Children.Add(m_CalpointsVisual);
+
+            //try adding an ellipse to view
+            EllipsoidVisual3D ell1 = new EllipsoidVisual3D();
+            //SolidColorBrush perimeterbrush = new SolidColorBrush(Colors.Red);
+            System.Windows.Media.Media3D.Material mat = MaterialHelper.CreateMaterial(new SolidColorBrush(Colors.Red));
+            //ell1.Material = mat;
+            //ell1.BackMaterial = mat;
+            //ell1.Fill = perimeterbrush;
+            ell1.Center = new Point3D(0, 0, 0);
+            ell1.RadiusX = 1;
+            ell1.RadiusZ = 1;
+            ell1.RadiusY = 1;
+            //ell1.Model.BackMaterial = mat;
+            //ell1.Model.Material = mat;
+            ell1.Fill = new SolidColorBrush(Colors.White);
+            vp_cal.Children.Add(ell1);
+
+            //EllipseGeometry ell2 = new EllipseGeometry(new System.Windows.Point(0, 0), 1, 1);
+            //vp_cal.Children.Add(ell2);
+            vp_cal.UpdateLayout();
+
+            //06/08/16 copied from frmMagManager.cs
+            //Load file/folder boxes with default contents from config file
+            tbOctavePath.Text = Properties.Settings.Default.OctaveExePath;
+            tbOctaveScriptFolder.Text = Properties.Settings.Default.OctaveScriptFolder;
+
+            //06/08/16 experiment with text-wrapping button
+            RichTextBox rtb = new RichTextBox();
+            rtb.IsReadOnly = true;
+            rtb.Focusable = false;
+            rtb.BorderThickness = new Thickness(0);
+            rtb.Background = Brushes.Transparent;
+            rtb.AppendText("Update Raw View");
+            btn_UpdateRawView.Content = rtb;
         }
 
         //this function is just to generate a static set of test points
@@ -230,7 +308,7 @@ namespace MyWPFMagViewer2
                     string selvisptstr = selvispt.X.ToString("F2") + ","
                                     + selvispt.Y.ToString("F2") + ","
                                     + selvispt.Z.ToString("F2");
-                    Debug.Print("selected pt (" + selvisptstr + ") added to m_selpoints Collection. Count now "
+                    Debug.Print("selected pt (" + selvisptstr + ") added to selPointsVisual Points Collection. Count now "
                         + newcount);
 
                     //add this point to selPointsVisual
@@ -263,6 +341,204 @@ namespace MyWPFMagViewer2
             }
 
             vp_raw.UpdateLayout();//refresh the 'raw' view
+        }
+
+        private void vp_cal_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Debug.Print("In vp_cal_MouseDown");
+        }
+
+        private void btn_CommPortOpen_Click(object sender, RoutedEventArgs e)
+        {
+            commMgr.PortName = cbox_CommPort.Text;
+            commMgr.BaudRate = cbox_BaudRate.Text;
+            bCommPortOpen = commMgr.OpenPort();
+
+            UpdateControls();
+        }
+
+        private void frmMainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            //06/08/16 all copied from frmMagManager.cs
+            //this.vp_Raw.ActionMode = viewportActionType.SelectVisibleByPick; //chg 02/13/09 so hidden objects aren't selected
+            //this.vp_Raw.DisplayMode = viewportDisplayType.Shaded; //added 02/12/09
+
+            LoadValues();
+            SetDefaults();
+            SetControlState();
+            commMgr.DisplayForm = this;
+            UpdateControls();
+        }
+
+        private void SetDefaults()
+        {
+            cbox_CommPort.SelectedIndex = 0;
+            cbox_BaudRate.SelectedIndex = 5; //chg from 'SelectedText="9600"' to 'SelectedIndex = 5'
+        }
+
+        private void LoadValues()
+        {
+            commMgr.SetPortNameValues(cbox_CommPort);
+        }
+
+        private void SetControlState()
+        {
+            btn_CommPortClose.IsEnabled = false;
+        }
+
+        public void AddLineToRawDataView(System.Drawing.Color txtcolor, string portstr)
+        {
+            //rtb_RawMagData.SelectedText = string.Empty;
+            //rtb_RawMagData.SelectionFont = new Font(rtb_RawMagData.SelectionFont, FontStyle.Bold);
+            //rtb_RawMagData.SelectionColor = txtcolor;
+            //rtb_RawMagData.AppendText(portstr);
+            //rtb_RawMagData.ScrollToCaret();
+
+            //06/08/16 try with WPF TextBlock object
+            tbox_RawMagData.Text = tbox_RawMagData.Text + Environment.NewLine + portstr;
+        }
+
+        private void UpdateControls()
+        {
+            //serial commms buttons
+            btn_CommPortOpen.IsEnabled = !bCommPortOpen;
+            btn_CommPortClose.IsEnabled = bCommPortOpen;
+
+            //file IO
+            btn_Import.IsEnabled = !bCommPortOpen;
+            btn_SaveAs.IsEnabled = !bCommPortOpen && tbox_RawMagData.LineCount > 0;
+            btn_ClearMagData.IsEnabled = !bCommPortOpen;
+            btn_UpdateRawView.IsEnabled = !bCommPortOpen && tbox_RawMagData.LineCount > 0;
+
+            //Compute button
+            //btn_Compute.Enabled = vp_Raw.Entities.Count >= MIN_COMP_POINTS
+            //    && bOctaveFunctionFileExists && bOctaveScriptFileExists;
+
+            //file/script locaton textbox colors
+            //tbOctaveScriptFolder.BackColor = (bOctaveScriptFileExists && bOctaveFunctionFileExists) ? Color.LightGreen : Color.LightPink;
+            //tbOctavePath.BackColor = (bOctaveExeFileExists) ? Color.LightGreen : Color.LightPink;
+            tbOctaveScriptFolder.Background = (bOctaveScriptFileExists && bOctaveFunctionFileExists) ? Brushes.LightGreen : Brushes.LightPink;
+            tbOctavePath.Background = (bOctaveExeFileExists) ? Brushes.LightGreen : Brushes.LightPink;
+        }
+
+        public void ProcessCommPortString(string linestr)
+        {
+            //convert commport line into Vector3D object
+            Vector3D v3d = GetVector3DFromString(linestr);
+
+            //add the line to the rich text box
+            AddLineToRawDataView(System.Drawing.Color.Black, linestr);
+
+            //add the point to the viewport Entity list
+            AddPointToRaw3DView(v3d);
+
+            //refresh the view
+            //vp_Raw.Refresh();
+            //vp_Raw.ZoomFit();
+            //lbl_NumRawPoints.Text = vp_Raw.Entities.Count.ToString();
+
+            //update controls as necessary
+            UpdateControls();
+        }
+
+        private void btn_ClearMagData_Click(object sender, EventArgs e)
+        {
+            tbox_RawMagData.Text = string.Empty;
+            lbl_NumRtbLines.Content = "None";
+            UpdateControls();
+        }
+
+        private void btn_Update3DView_Click(object sender, EventArgs e)
+        {
+            ////don't show message if the raw view is already empty
+            //if (vp_Raw.Entities.Count > 3)
+            //{
+            //    DialogResult res = MessageBox.Show("This will clear existing points in raw 3D view.  Proceed?",
+            //                                        "3D View Clear", MessageBoxButtons.YesNoCancel);
+            //    if (res == System.Windows.Forms.DialogResult.Yes)
+            //    {
+            //        XfrTextPointsToRawView();
+
+            //    }
+            //}
+            //else
+            //{
+            //    XfrTextPointsToRawView();
+            //}
+        }
+
+        public Vector3D GetVector3DFromString(string linestr)
+        {
+            Vector3D pt = new Vector3D();
+
+            try
+            {
+                string[] ptstrArray = linestr.Split(',');
+                if (ptstrArray.Length == 3)
+                {
+                    pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
+                    pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
+                    pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Vector generation failed with message: " + e.Message);
+            }
+
+            return pt;
+        }
+
+        public void AddPointToRaw3DView(Vector3D v3d)
+        {
+            //devDept.Eyeshot.Standard.Point pt = new devDept.Eyeshot.Standard.Point(v3d, Color.Red);
+            //pt.EntityData = v3d;//Point objects don't have position prop - so do it this way
+            //vp_Raw.Entities.Add(pt);
+        }
+
+        private void btn_CommPortClose_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_RefreshPorts_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_BrowseOctave_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_BrowseScript_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_Import_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_SaveAs_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_ClearMagData_Click_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_UpdateRawView_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btn_Compute_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
