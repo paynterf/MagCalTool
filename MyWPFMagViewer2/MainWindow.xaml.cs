@@ -7,13 +7,19 @@ using System.Windows.Media.Media3D;
 using System.Diagnostics;
 using System.Text;
 using System.Windows.Input;
+using System.Windows.Threading;
+
 using System.Windows.Controls;
+using System.IO;
+using System.Windows.Forms;
 
 //05/31/16 experiment
 using HelixToolkit.Wpf.SharpDX;
 using SharpDX;
 using Color = SharpDX.Color;
 using HitTestResult = HelixToolkit.Wpf.SharpDX.HitTestResult;
+using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace MyWPFMagViewer2
 {
@@ -140,13 +146,13 @@ namespace MyWPFMagViewer2
             tbOctaveScriptFolder.Text = Properties.Settings.Default.OctaveScriptFolder;
 
             //06/08/16 experiment with text-wrapping button
-            RichTextBox rtb = new RichTextBox();
-            rtb.IsReadOnly = true;
-            rtb.Focusable = false;
-            rtb.BorderThickness = new Thickness(0);
-            rtb.Background = Brushes.Transparent;
-            rtb.AppendText("Update Raw View");
-            btn_UpdateRawView.Content = rtb;
+            //RichTextBox rtb = new RichTextBox();
+            //rtb.IsReadOnly = true;
+            //rtb.Focusable = false;
+            //rtb.BorderThickness = new Thickness(0);
+            //rtb.Background = Brushes.Transparent;
+            //rtb.AppendText("Update Raw View");
+            //btn_UpdateRawView.Content = rtb;
         }
 
         //this function is just to generate a static set of test points
@@ -348,15 +354,6 @@ namespace MyWPFMagViewer2
             Debug.Print("In vp_cal_MouseDown");
         }
 
-        private void btn_CommPortOpen_Click(object sender, RoutedEventArgs e)
-        {
-            commMgr.PortName = cbox_CommPort.Text;
-            commMgr.BaudRate = cbox_BaudRate.Text;
-            bCommPortOpen = commMgr.OpenPort();
-
-            UpdateControls();
-        }
-
         private void frmMainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             //06/08/16 all copied from frmMagManager.cs
@@ -367,6 +364,8 @@ namespace MyWPFMagViewer2
             SetDefaults();
             SetControlState();
             commMgr.DisplayForm = this;
+            VerifyOctaveExeFile(tbOctavePath.Text);
+            VerifyOctaveScriptFiles(tbOctaveScriptFolder.Text);
             UpdateControls();
         }
 
@@ -414,6 +413,9 @@ namespace MyWPFMagViewer2
             //btn_Compute.Enabled = vp_Raw.Entities.Count >= MIN_COMP_POINTS
             //    && bOctaveFunctionFileExists && bOctaveScriptFileExists;
 
+            //Refresh Ports button
+            btn_RefreshPorts.IsEnabled = !bCommPortOpen;
+
             //file/script locaton textbox colors
             //tbOctaveScriptFolder.BackColor = (bOctaveScriptFileExists && bOctaveFunctionFileExists) ? Color.LightGreen : Color.LightPink;
             //tbOctavePath.BackColor = (bOctaveExeFileExists) ? Color.LightGreen : Color.LightPink;
@@ -421,25 +423,25 @@ namespace MyWPFMagViewer2
             tbOctavePath.Background = (bOctaveExeFileExists) ? Brushes.LightGreen : Brushes.LightPink;
         }
 
-        public void ProcessCommPortString(string linestr)
-        {
-            //convert commport line into Vector3D object
-            Vector3D v3d = GetVector3DFromString(linestr);
+        //public void ProcessCommPortString(string linestr)
+        //{
+        //    //convert commport line into Vector3D object
+        //    Vector3D v3d = GetVector3DFromString(linestr);
 
-            //add the line to the rich text box
-            AddLineToRawDataView(System.Drawing.Color.Black, linestr);
+        //    //add the line to the rich text box
+        //    AddLineToRawDataView(System.Drawing.Color.Black, linestr);
 
-            //add the point to the viewport Entity list
-            AddPointToRaw3DView(v3d);
+        //    //add the point to the viewport Entity list
+        //    AddPointToRaw3DView(v3d);
 
-            //refresh the view
-            //vp_Raw.Refresh();
-            //vp_Raw.ZoomFit();
-            //lbl_NumRawPoints.Text = vp_Raw.Entities.Count.ToString();
+        //    //refresh the view
+        //    //vp_Raw.Refresh();
+        //    //vp_Raw.ZoomFit();
+        //    //lbl_NumRawPoints.Text = vp_Raw.Entities.Count.ToString();
 
-            //update controls as necessary
-            UpdateControls();
-        }
+        //    //update controls as necessary
+        //    UpdateControls();
+        //}
 
         private void btn_ClearMagData_Click(object sender, EventArgs e)
         {
@@ -453,8 +455,8 @@ namespace MyWPFMagViewer2
             ////don't show message if the raw view is already empty
             //if (vp_Raw.Entities.Count > 3)
             //{
-            //    DialogResult res = MessageBox.Show("This will clear existing points in raw 3D view.  Proceed?",
-            //                                        "3D View Clear", MessageBoxButtons.YesNoCancel);
+            //    DialogResult res = System.Windows.MessageBox.Show("This will clear existing points in raw 3D view.  Proceed?",
+            //                                        "3D View Clear", System.Windows.MessageBoxButton.YesNoCancel);
             //    if (res == System.Windows.Forms.DialogResult.Yes)
             //    {
             //        XfrTextPointsToRawView();
@@ -483,47 +485,173 @@ namespace MyWPFMagViewer2
             }
             catch (Exception e)
             {
-                MessageBox.Show("Vector generation failed with message: " + e.Message);
+                System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
             }
 
             return pt;
         }
 
-        public void AddPointToRaw3DView(Vector3D v3d)
+        private void btn_CommPortOpen_Click(object sender, RoutedEventArgs e)
         {
-            //devDept.Eyeshot.Standard.Point pt = new devDept.Eyeshot.Standard.Point(v3d, Color.Red);
-            //pt.EntityData = v3d;//Point objects don't have position prop - so do it this way
-            //vp_Raw.Entities.Add(pt);
+            //be a little more clever about clearing the raw data text window
+            //don't clear it if there was a previous open/close sesssion
+            if (!tbox_RawMagData.Text.Contains("Closed"))
+            {
+                tbox_RawMagData.Text = string.Empty;
+            }
+
+            commMgr.PortName = cbox_CommPort.Text;
+            commMgr.BaudRate = cbox_BaudRate.Text;
+            try
+            {
+                bCommPortOpen = commMgr.OpenPort();
+                UpdateControls();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Comm Port Open() Failed with message: " + ex.Message);
+            }
+
         }
-
-        private void btn_CommPortClose_Click(object sender, RoutedEventArgs e)
+ 
+       private void btn_CommPortClose_Click(object sender, RoutedEventArgs e)
         {
-
+            try
+            {
+                Debug.Print("In btn_CommPortClose_Click before call to ClosePort()");
+                bCommPortOpen = !commMgr.ClosePort();
+                Debug.Print("In btn_CommPortClose_Click after call to ClosePort()");
+                tbox_RawMagData.ScrollToEnd(); //needed to display 'Port Closed' line
+                UpdateControls();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Comm Port Close() Failed with message: " + ex.Message);
+            }
         }
 
         private void btn_RefreshPorts_Click(object sender, RoutedEventArgs e)
         {
-
+            LoadValues();
         }
 
         private void btn_BrowseOctave_Click(object sender, RoutedEventArgs e)
         {
+            // Create an instance of the open file dialog box.
+            CommonOpenFileDialog openFileDialog1 = new CommonOpenFileDialog();
+            openFileDialog1.Title = "Location of Octave CLI Executable";
+            openFileDialog1.IsFolderPicker = false;
 
+            // Set filter options and filter index.
+            openFileDialog1.Filters.Add(new CommonFileDialogFilter("Programs", "*.exe"));
+            openFileDialog1.DefaultExtension = ".exe";
+            openFileDialog1.InitialDirectory = Path.GetDirectoryName(tbOctavePath.Text);
+
+            // Call the ShowDialog method to show the dialog box.
+            CommonFileDialogResult userClickedOK = openFileDialog1.ShowDialog();
+
+            // Process input if the user clicked OK.
+            if (userClickedOK == CommonFileDialogResult.Ok)
+            {
+                tbOctavePath.Text = openFileDialog1.FileName;
+                VerifyOctaveExeFile(tbOctavePath.Text);
+                Properties.Settings.Default.OctaveExePath = tbOctavePath.Text;
+            }
+            UpdateControls();
         }
 
         private void btn_BrowseScript_Click(object sender, RoutedEventArgs e)
         {
+            var dlg = new CommonOpenFileDialog();
+            dlg.Title = "Choose the folder containing the '" + OctaveScriptFile;
+            dlg.IsFolderPicker = true;
+            dlg.InitialDirectory = Environment.CurrentDirectory;
 
+            dlg.AddToMostRecentlyUsedList = false;
+            dlg.AllowNonFileSystemItems = false;
+            dlg.DefaultDirectory = Environment.CurrentDirectory;
+            dlg.EnsureFileExists = true;
+            dlg.EnsurePathExists = true;
+            dlg.EnsureReadOnly = false;
+            dlg.EnsureValidNames = true;
+            dlg.Multiselect = false;
+            dlg.ShowPlacesList = true;
+
+            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                var folder = dlg.FileName;
+                tbOctaveScriptFolder.Text = folder;
+                VerifyOctaveScriptFiles(tbOctaveScriptFolder.Text);
+            } 
+
+            UpdateControls(); //updates textbox background color
         }
 
         private void btn_Import_Click(object sender, RoutedEventArgs e)
         {
+            // Create an instance of the open file dialog box.
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
 
+            // Set filter options and filter index.
+            openFileDialog1.Filter = "Text Format|*.txt;*.csv|All Files (*.*)|*.*";
+            openFileDialog1.FilterIndex = 1;
+            openFileDialog1.InitialDirectory = Properties.Settings.Default.MagDataFolder;
+
+            // Call the ShowDialog method to show the dialog box.
+            DialogResult userClickedOK = openFileDialog1.ShowDialog();
+
+            // Process input if the user clicked OK.
+            if (userClickedOK == System.Windows.Forms.DialogResult.OK)
+            {
+                string datafilename = openFileDialog1.FileName;
+                Properties.Settings.Default.MagDataFolder = Path.GetFileName(Path.GetDirectoryName(datafilename));
+                tbox_RawMagData.Text = string.Empty;
+                StreamReader sr = new StreamReader(datafilename);
+
+                using (new WaitCursor())
+                {
+                    try
+                    {
+                        //accumulate lines into local string; MUCH faster than updating textbox
+                        //typical 2000 line dataset takes < 1sec without updates, > 10 sec with
+                        int numlines = 0;
+                        string datastr = string.Empty;
+
+                        while (!sr.EndOfStream)
+                        {
+                            numlines++;
+                            datastr += sr.ReadLine().Trim() + Environment.NewLine;
+                        }
+
+                        //update controls at end - MUCH faster!
+                        lbl_NumRtbLines.Content = numlines.ToString();
+                        tbox_RawMagData.Text = datastr;
+                        UpdateControls();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Mag data import from " + datafilename + " Failed with Message: " + ex.Message);
+                    }
+                }
+            }
         }
 
         private void btn_SaveAs_Click(object sender, RoutedEventArgs e)
         {
+            // Create a SaveFileDialog to request a path and file name to save to.
+            SaveFileDialog saveFile1 = new SaveFileDialog();
 
+            // Initialize the SaveFileDialog to specify the TXT extension for the file.
+            saveFile1.DefaultExt = "*.txt";
+            saveFile1.Filter = "Text Files|*.txt";
+
+            // Determine if the user selected a file name from the saveFileDialog.
+            if (saveFile1.ShowDialog() == System.Windows.Forms.DialogResult.OK &&
+               saveFile1.FileName.Length > 0)
+            {
+                // Save the contents of the RichTextBox into the file.
+                //rtb_RawMagData.SaveFile(saveFile1.FileName, RichTextBoxStreamType.PlainText);
+            }
         }
 
         private void btn_ClearMagData_Click_1(object sender, RoutedEventArgs e)
@@ -539,6 +667,301 @@ namespace MyWPFMagViewer2
         private void btn_Compute_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void checkBox_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        //public void AddLineToRawDataView(System.Drawing.Color txtcolor, string portstr)
+        //{
+        //    tbox_RawMagData.AppendText(portstr);
+        //}
+
+        public void AddPointToRaw3DView(Vector3D v3d)
+        {
+            //devDept.Eyeshot.Standard.Point pt = new devDept.Eyeshot.Standard.Point(v3d, Color.Red);
+            //pt.EntityData = v3d;//Point objects don't have position prop - so do it this way
+            //vp_Raw.Entities.Add(pt);
+        }
+
+        private void VerifyOctaveExeFile(string exefilename)
+        {
+            string prestr = "I can't seem to find the ";
+            string poststr = " at this location - and calibration can't proceed without it!";
+            FileInfo fi = new FileInfo(exefilename);
+            if (fi.Exists)
+            {
+                bOctaveExeFileExists = true;
+            }
+            else
+            {
+                bOctaveExeFileExists = false;
+                System.Windows.MessageBox.Show(prestr + "'Octave executable" + poststr,
+                    "Octave Executable Not Found", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
+            }
+        }
+
+        private void VerifyOctaveScriptFiles(string foldername)
+        {
+            //see if the files are really there
+            string prestr = "I can't seem to find the ";
+            string poststr = " in this folder - and calibration can't proceed without it!";
+            FileInfo fi = new FileInfo(foldername + "\\" + OctaveScriptFile);
+            if (fi.Exists)
+            {
+                bOctaveScriptFileExists = true;
+
+                FileInfo fi2 = new FileInfo(foldername + "\\" + OctaveFunctionFile);
+                if (fi2.Exists)
+                {
+                    //OK, both the script and function files exist in this folder - good to go
+                    tbOctaveScriptFolder.Background = Brushes.LightGreen;
+                    bOctaveFunctionFileExists = true;
+                }
+                else
+                {
+                    bOctaveFunctionFileExists = false;
+                    System.Windows.MessageBox.Show(prestr + "'" + OctaveFunctionFile + "' Octave function" + poststr,
+                        "Octave Function Not Found", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                bOctaveScriptFileExists = false;
+                System.Windows.MessageBox.Show(prestr + "'" + OctaveScriptFile + "' Octave script" + poststr,
+                    "Octave Script Not Found", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+
+        }
+
+        private void ExecuteOctaveScript(string rawdatafilepath, out double[][] A, out double[] c, out double[][] Caldata)
+        {
+            string cmdstr = "";
+            A = new double[3][]; //initial required by use of 'out' parameter & try/catch blocks
+            Caldata = new double[3][]; //initial required by use of 'out' parameter & try/catch blocks
+            c = new double[3]; //initial required by use of 'out' parameter & try/catch blocks
+
+            //gfp's new code
+            string OctaveScriptFolderName = tbOctaveScriptFolder.Text.Replace(@"\", "/");
+            string OctaveRawDataFilePath = rawdatafilepath.Replace(@"\", "/");
+
+            ////display current working directory (pwd)
+            //textBox1.Text += octave.GetString("pwd"); //this also executes the command
+
+            //prepend script/function path to Octave search path
+            int slashidx = tbOctaveScriptFolder.Text.LastIndexOf("\\");
+            cmdstr = "addpath (" + "'" + OctaveScriptFolderName + "'" + ")";
+
+            try
+            {
+                octave.ExecuteCommand(cmdstr);
+
+                ////read it back out for debug purposes
+                //displaystr = octave.GetString("path");//this also executes the command
+                //System.Windows.MessageBox.Show(displaystr);
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show("Addpath Command Failed with Message: " + e.Message);
+            }
+            //octave.ExecuteCommand(cmdstr);
+
+            //load datafile
+            cmdstr = "S = load (" + quote + "-ascii" + quote + ", " + quote
+                + OctaveRawDataFilePath + quote + ");";
+
+            try
+            {
+                octave.ExecuteCommand(cmdstr);
+                //displaystr = DisplayMatrixSample("S");
+                double[][] m = octave.GetMatrix("S");
+                //displaystr = DisplayMatrixSample("S",m);
+                //System.Windows.MessageBox.Show(displaystr);
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show("Load Command Failed with Message: " + e.Message);
+            }
+
+            //execute script file - the script calls a function in the same folder
+            try
+            {
+                cmdstr = "source(" + quote + OctaveScriptFolderName + "/" + OctaveScriptFile + quote + ")";
+                octave.ExecuteCommand(cmdstr);
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show("Source Command Failed with Message: " + e.Message);
+            }
+
+            //display function return results.  
+            try
+            {
+                //'A' matrix and 'c' vector
+                A = octave.GetMatrix("A");
+                c = octave.GetVector("c");
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show("[A,c] Results display Failed with Message: " + e.Message);
+            }
+
+            //generate/display calibrated data sample
+            try
+            {
+                Caldata = octave.GetMatrix("Caldata'");
+                //displaystr = DisplayMatrixSample("Caldata'", Caldata);
+                //System.Windows.MessageBox.Show(displaystr);
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show("Caldata' Results display Failed with Message: " + e.Message);
+            }
+            //Oops - these aren't returned (yet) from MagnCalibration.m
+            //try
+            //{
+            //    displaystr = DisplayMatrixSample("Caldata'");
+            //    displaystr += DisplayVectorSample("b");
+            //    displaystr += DisplayMatrixSample("D");
+            //    displaystr += DisplayMatrixSample("U");
+            //    displaystr += DisplayMatrixSample("V");
+            //    displaystr += DisplayMatrixSample("p");
+            //    System.Windows.MessageBox.Show(displaystr);
+            //}
+            //catch (Exception e)
+            //{
+
+            //    throw;
+            //}
+        }
+
+        //05/13/16 - matrix acquisition abstracted to calling fcn
+        //private string DisplayMatrixSample(string M)
+        private string DisplayMatrixSample(string M, double[][] m)
+        {
+            //double[][] m = octave.GetMatrix(M);
+            string str = "Size of " + M + " is " + m.Length + "x" + m[0].Length + "\r\n";
+
+            if (m.Length > 10)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    if (m[0].Length > 10)
+                    {
+                        for (int j = 0; j < 10; j++)
+                        {
+                            str += m[i][j].ToString("0.000") + "\t";
+                        }
+                    }
+                    else
+                    {
+                        for (int j = 0; j < m[0].Length; j++)
+                        {
+                            str += m[i][j].ToString("0.000") + "\t";
+                        }
+                    }
+                    str += "\r\n";
+                }
+            }
+            else
+            {
+                for (int i = 0; i < m.Length; i++)
+                {
+                    if (m[0].Length > 10)
+                    {
+                        for (int j = 0; j < 10; j++)
+                        {
+                            str += m[i][j].ToString("0.000") + "\t";
+                        }
+                    }
+                    else
+                    {
+                        for (int j = 0; j < m[0].Length; j++)
+                        {
+                            str += m[i][j].ToString("0.000") + "\t";
+                        }
+                    }
+                    str += "\r\n";
+                }
+            }
+
+            str += "\r\n";
+            return str;
+        }
+
+        //05/13/16 abstracted vector acquisition to calling fcn
+        private string DisplayVectorSample(string v, double[] c)
+        {
+            //double[] c = octave.GetVector(v);
+            string str = "size of " + v + " = " + c.Length.ToString() + Environment.NewLine;
+            str += v + " = ";
+            for (int i = 0; i < c.Length; i++)
+            {
+                str += c[i].ToString() + " ";
+            }
+            str += "\r\n\r\n";
+            return str;
+        }
+
+        private void UpdateCalViewport()
+        {
+            //vp_Calibrated.Entities.Clear();
+            //vp_Calibrated.Refresh();
+
+            Vector3D pt3D = new Vector3D(0, 0, 0);
+            for (int i = 0; i < Caldata.Length; i++)
+            {
+                pt3D.X = Caldata[i][0];
+                pt3D.Y = Caldata[i][1];
+                pt3D.Z = Caldata[i][2];
+                //devDept.Eyeshot.Standard.Point pt = new devDept.Eyeshot.Standard.Point(pt3D, Color.Black);
+                //vp_Calibrated.Entities.Add(pt);
+            }
+
+            //draw unit radius reference circles if selected
+            if (chk_RefCircles.IsChecked.Value)
+            {
+                Point3D cenpt = new Point3D(0, 0, 0);
+                //Ellipse ell = new Ellipse(Plane.XY, cenpt, 1, 1, Color.Red);
+                //vp_Calibrated.Entities.Add(ell);
+                //ell = new Ellipse(Plane.YZ, cenpt, 1, 1, Color.Green);
+                //vp_Calibrated.Entities.Add(ell);
+                //ell = new Ellipse(Plane.ZX, cenpt, 1, 1, Color.Blue);
+                //vp_Calibrated.Entities.Add(ell);
+            }
+
+            //vp_Calibrated.Refresh();
+            //vp_Calibrated.ZoomFit();
+
+        }
+
+        //see http://stackoverflow.com/questions/4502037/where-is-the-application-doevents-in-wpf
+        public void DoEvents()
+        {
+            DispatcherFrame frame = new DispatcherFrame();
+            Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background,
+                new DispatcherOperationCallback(ExitFrame), frame);
+            //Dispatcher.BeginInvoke(DispatcherPriority.Background,
+            //    new DispatcherOperationCallback(ExitFrame), frame);
+            Dispatcher.PushFrame(frame);
+        }
+
+        public object ExitFrame(object f)
+        {
+            ((DispatcherFrame)f).Continue = false;
+
+            return null;
+        }
+
+        private void frmMainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Properties.Settings.Default.OctaveExePath = tbOctavePath.Text;
+            Properties.Settings.Default.OctaveScriptFolder = tbOctaveScriptFolder.Text;
+
+            //actually save to config file
+            Properties.Settings.Default.Save();
         }
     }
 }

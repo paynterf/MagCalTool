@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MyWPFMagViewer2"
         xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="Magnetometer Calibration Utility" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded">
+        Title="Magnetometer Calibration Utility" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing">
     <Grid>
 
         <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB"/>
@@ -56,6 +56,12 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         <Button x:Name="btn_Compute" Content="Compute.." HorizontalAlignment="Left" Margin="469,413,0,0" VerticalAlignment="Top" Width="75" Click="btn_Compute_Click"/>
-
+        <CheckBox x:Name="chk_RefCircles" HorizontalAlignment="Left" Margin="469,320,0,0" VerticalAlignment="Top" Height="33" Width="91" Click="checkBox_Click">
+            <TextBlock>
+        <AccessText TextWrapping="Wrap"  
+                    Text="Show Ref Circles" Width="51" Height="33"/>
+            </TextBlock>
+        </CheckBox>
+        
     </Grid>
 </Window>
