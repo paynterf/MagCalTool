@@ -485,11 +485,36 @@ namespace MyWPFMagViewer2
             }
             catch (Exception e)
             {
-                System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
+                //System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
+                throw;
             }
 
             return pt;
         }
+
+        private Point3D GetPoint3DFromString(string linestr)
+        {
+            Point3D pt = new Point3D();
+
+            try
+            {
+                string[] ptstrArray = linestr.Split(',');
+                if (ptstrArray.Length == 3)
+                {
+                    pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
+                    pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
+                    pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
+                }
+            }
+            catch (Exception e)
+            {
+                //System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
+                throw;
+            }
+
+            return pt;
+        }
+
 
         private void btn_CommPortOpen_Click(object sender, RoutedEventArgs e)
         {
@@ -680,7 +705,54 @@ namespace MyWPFMagViewer2
 
         private void btn_UpdateRawView_Click(object sender, RoutedEventArgs e)
         {
+            //Purpose: transfer contents of raw magnetometer data text window to 'raw' 3D viewport
+            //Plan:
+            //  Step1: For each line in text view
+            //      convert text to 3D point if possible (might fail)
+            //      add point to vp_raw Point collecton
+            //  Step2: Refresh vp_raw viewport
 
+        //Step1: clear vp_raw contents
+            selPointsVisual.Points.Clear();
+            m_pointsVisual.Points.Clear();
+            vp_raw.UpdateLayout();
+
+        //Step2: Add all points to raw 3D view
+            StringReader sr = new StringReader(tbox_RawMagData.Text);
+            string linestr = string.Empty;
+            int linenum = 1;
+            int errnum = 0;
+            Point3D pt3d = new Point3D();
+
+            using (new WaitCursor())
+            {
+
+                //convert each line in text view to 3D point if possible, and add to m_pointsVisual.Points collection
+                while (sr.Peek() >= 0) //Peek() returns -1 at end
+                {
+                    //convert text to 3D point if possible (might fail)
+                    try
+                    {
+                        linestr = sr.ReadLine();
+                        pt3d = GetPoint3DFromString(linestr);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Print("GetVector3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
+                        errnum++;
+                    }
+                    linenum++;
+
+                    //add point to vp_raw Point collecton
+                    m_pointsVisual.Points.Add(pt3d);
+                }
+
+                //Step2: Refresh vp_raw viewport
+                Debug.Print("processed " + linenum + " lines with " + errnum + " errors");
+                vp_raw.UpdateLayout();
+                vp_raw.ZoomExtents();
+                //vp_raw.ResetCamera();
+            }            
         }
 
         private void btn_Compute_Click(object sender, RoutedEventArgs e)
