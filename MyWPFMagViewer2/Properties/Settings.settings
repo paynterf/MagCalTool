@@ -20,5 +20,8 @@
     <Setting Name="OctaveExePath" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\\Octave\\Octave-4.0.1\\bin</Value>
     </Setting>
+    <Setting Name="MagDataFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\\Users\\Frank\\Documents\\Octave</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

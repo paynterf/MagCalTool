@@ -533,6 +533,7 @@ namespace MyWPFMagViewer2
         private void btn_RefreshPorts_Click(object sender, RoutedEventArgs e)
         {
             LoadValues();
+            cbox_CommPort.SelectedIndex = 0;
         }
 
         private void btn_BrowseOctave_Click(object sender, RoutedEventArgs e)
@@ -649,8 +650,26 @@ namespace MyWPFMagViewer2
             if (saveFile1.ShowDialog() == System.Windows.Forms.DialogResult.OK &&
                saveFile1.FileName.Length > 0)
             {
-                // Save the contents of the RichTextBox into the file.
-                //rtb_RawMagData.SaveFile(saveFile1.FileName, RichTextBoxStreamType.PlainText);
+                try
+                {
+                    string str = tbox_RawMagData.Text;
+                    StringReader sr = new StringReader(str);
+                    StreamWriter sw = new StreamWriter(saveFile1.FileName);
+                    while (sr.Peek() >= 0) //peek() returns -1 if nothing avail
+                    {
+                        string linestr = sr.ReadLine();
+                        if (!linestr.Contains("Port"))
+                        {
+                            sw.WriteLine(linestr);
+                        }
+                    }
+
+                    Properties.Settings.Default.MagDataFolder = Path.GetDirectoryName(saveFile1.FileName);
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show("Mag data save to " + saveFile1.FileName + " Failed with Message: " + ex.Message);
+                }
             }
         }
 

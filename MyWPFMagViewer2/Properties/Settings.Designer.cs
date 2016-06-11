@@ -94,5 +94,17 @@ namespace MyWPFMagViewer2.Properties {
                 this["OctaveExePath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\\\Users\\\\Frank\\\\Documents\\\\Octave")]
+        public string MagDataFolder {
+            get {
+                return ((string)(this["MagDataFolder"]));
+            }
+            set {
+                this["MagDataFolder"] = value;
+            }
+        }
     }
 }
