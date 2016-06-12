@@ -726,7 +726,6 @@ namespace MyWPFMagViewer2
 
             using (new WaitCursor())
             {
-
                 //convert each line in text view to 3D point if possible, and add to m_pointsVisual.Points collection
                 while (sr.Peek() >= 0) //Peek() returns -1 at end
                 {
@@ -750,8 +749,10 @@ namespace MyWPFMagViewer2
                 //Step2: Refresh vp_raw viewport
                 Debug.Print("processed " + linenum + " lines with " + errnum + " errors");
                 vp_raw.UpdateLayout();
-                //vp_raw.ZoomExtents(); //can't use - clips points
-                //vp_raw.ResetCamera();
+
+                //Step3: Update Numpts and average radius labels
+                lbl_AvgRadius.Content = GetRawAvgRadius().ToString("F2");
+                lbl_NumPoints.Content = m_pointsVisual.Points.Count.ToString();
             }            
         }
 
@@ -1114,6 +1115,24 @@ namespace MyWPFMagViewer2
         {
             Debug.Print("In btn_RemSel_Click Handler");
             Debug.Print("Selected Radius Value = " + tb_SelRadius.Text);
+        }
+
+        private double GetRawAvgRadius()
+        {
+            //Purpose: Compute the average radius of all non-selected raw magetometer points
+            //Plan:
+            //Step1: Iterate through all points in m_pointsVisual, computing average radius
+            double avgradius = 0;
+            double radius = 0;
+            int numpts = 0;
+            foreach (Point3D pt3d in m_pointsVisual.Points)
+            {
+                numpts++;
+                Vector3 V3 = pt3d.ToVector3();
+                radius = V3.Length();
+                avgradius =  ((double)(numpts - 1) / numpts) * avgradius + (radius / numpts);//running average
+            }
+            return avgradius;
         }
     }
 }

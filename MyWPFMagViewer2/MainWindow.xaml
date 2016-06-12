@@ -79,5 +79,11 @@
                 <Button x:Name="btn_RemSel" Content="Remove Selected" ToolTip="remove all selected points" Click="btn_RemSel_Click" Margin="0,0,0,0"/>
             </MenuItem>
         </Menu>
+        <Label x:Name="label5" Content="Total Points" HorizontalAlignment="Left" Margin="53,265,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lbl_NumPoints" Content="None" HorizontalAlignment="Left" Margin="125,265,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label7" Content="Selected" HorizontalAlignment="Left" Margin="187,265,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lbl_SelPoints" Content="None" HorizontalAlignment="Left" Margin="235,265,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label6" Content="Average Radius" HorizontalAlignment="Left" Margin="295,265,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lbl_AvgRadius" Content="None" HorizontalAlignment="Left" Margin="391,265,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>
