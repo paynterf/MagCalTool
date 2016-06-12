@@ -750,7 +750,7 @@ namespace MyWPFMagViewer2
                 //Step2: Refresh vp_raw viewport
                 Debug.Print("processed " + linenum + " lines with " + errnum + " errors");
                 vp_raw.UpdateLayout();
-                vp_raw.ZoomExtents();
+                //vp_raw.ZoomExtents(); //can't use - clips points
                 //vp_raw.ResetCamera();
             }            
         }
@@ -1053,6 +1053,67 @@ namespace MyWPFMagViewer2
 
             //actually save to config file
             Properties.Settings.Default.Save();
+        }
+
+        private void RawOptionsMenu_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            System.Windows.Controls.Menu menu = (System.Windows.Controls.Menu)sender;
+            int itemnum = 0;
+            foreach (System.Windows.Controls.MenuItem mi in menu.Items)
+            {
+                string header = mi.Header.ToString();
+                Debug.Print("Menu Item " + itemnum + " Header = " + header);
+                itemnum++;
+            }
+
+        }
+
+        private void mi_Options_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+                Debug.Print("mi_Options_ContextMenuOpening");
+        }
+
+        private void mi_Options_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.Print("mi_Options_Click");
+        }
+
+        private void mi_Options_LayoutUpdated(object sender, EventArgs e)
+        {
+            //Debug.Print("mi_Options_LayoutUpdated");
+        }
+
+        private void mi_Options_SubmenuOpened(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Controls.MenuItem mi = (System.Windows.Controls.MenuItem)sender;
+            Debug.Print("mi_Options_SubmenuOpened: Item name = "+mi.Name.ToString());
+            mi_SelRadius.IsEnabled = mi_USR_Radius.IsChecked;
+            btn_RemSel.IsEnabled = mi_USR_Radius.IsChecked;
+        }
+
+        private void USR_Radius_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Controls.MenuItem mi = (System.Windows.Controls.MenuItem)sender;
+            Debug.Print("USR_Radius_Click: Item name = " + mi.Name.ToString());
+            Debug.Print("USR_Radius Checked State = " + mi.IsChecked.ToString());
+        }
+
+        private void mi_SelRadius_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Controls.MenuItem mi = (System.Windows.Controls.MenuItem)sender;
+            Debug.Print("mi_SelRadius_Click: Item name = " + mi.Name.ToString());
+        }
+
+        private void mi_SelRadius_SubmenuOpened(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Controls.MenuItem mi = (System.Windows.Controls.MenuItem)sender;
+            Debug.Print("mi_SelRadius_SubmenuOpened: Item name = " + mi.Name.ToString());
+        }
+
+        private void btn_RemSel_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.Print("In btn_RemSel_Click Handler");
+            Debug.Print("Selected Radius Value = " + tb_SelRadius.Text);
         }
     }
 }

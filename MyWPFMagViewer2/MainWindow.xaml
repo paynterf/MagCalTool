@@ -6,12 +6,14 @@
         xmlns:local="clr-namespace:MyWPFMagViewer2"
         xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="Magnetometer Calibration Utility" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing">
+        Title="Magnetometer Calibration Utility" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="NoResize">
     <Grid>
-
-        <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB" ShowCameraInfo="True"/>
-        <h:HelixViewport3D HorizontalAlignment="Left" Margin="-80,-115,0,0" VerticalAlignment="Top"/>
-        <h:HelixViewport3D x:Name="vp_cal" Margin="560,290,32,130" MouseDown="vp_cal_MouseDown" CoordinateSystemHorizontalPosition="Center" CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB"/>
+        <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" 
+                           CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" 
+                           Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB" ShowCameraInfo="True"/>
+        <h:HelixViewport3D x:Name="vp_cal" Margin="560,290,32,130" MouseDown="vp_cal_MouseDown" CoordinateSystemHorizontalPosition="Center" 
+                CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" 
+                Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB"/>
         <Label x:Name="label" Content="Octave Executable Location" HorizontalAlignment="Left" Margin="45,9,0,0" VerticalAlignment="Top" Width="160"/>
         <TextBox x:Name="tbOctavePath" HorizontalAlignment="Left" Height="24" Margin="235,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="585"/>
         <Button x:Name="btn_BrowseOctave" Content="Browse" HorizontalAlignment="Left" Margin="840,11,0,0" VerticalAlignment="Top" Width="75" Click="btn_BrowseOctave_Click"/>
@@ -62,6 +64,20 @@
                     Text="Show Ref Circles" Width="51" Height="33"/>
             </TextBlock>
         </CheckBox>
-        
+        <Menu x:Name="RawOptionsMenu" HorizontalAlignment="Left" Height="20" Margin="375,295,0,0" VerticalAlignment="Top" Width="60">
+            <MenuItem x:Name="mi_Options" Header="Options" ContextMenuOpening="mi_Options_ContextMenuOpening" 
+                      Click="mi_Options_Click"  SubmenuOpened="mi_Options_SubmenuOpened" 
+                      HorizontalAlignment="Left" Width="60">
+                <MenuItem x:Name="mi_USR_Radius" Header="Use Selection Radius" ToolTip="Enables radius-based point culling" 
+                          IsCheckable="True" Click="USR_Radius_Click" Margin="0,0,0,0" Height="19"  
+                          HorizontalAlignment="Left"/>
+                <MenuItem x:Name="mi_SelRadius" Header="Selection Radius" ToolTip="Select the radius to be used for point culling" 
+                          Click="mi_SelRadius_Click"  Margin="0,0,0,0" HorizontalAlignment="Left" 
+                          SubmenuOpened="mi_SelRadius_SubmenuOpened">
+                    <TextBox x:Name="tb_SelRadius" Text="1000"/>
+                </MenuItem>
+                <Button x:Name="btn_RemSel" Content="Remove Selected" ToolTip="remove all selected points" Click="btn_RemSel_Click" Margin="0,0,0,0"/>
+            </MenuItem>
+        </Menu>
     </Grid>
 </Window>
