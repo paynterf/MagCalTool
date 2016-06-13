@@ -73,7 +73,7 @@ namespace MyWPFMagViewer2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\\\Users\\\\Frank\\\\Documents\\\\Octave")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\Frank\\Documents\\Octave")]
         public string OctaveScriptFolder {
             get {
                 return ((string)(this["OctaveScriptFolder"]));
@@ -85,7 +85,7 @@ namespace MyWPFMagViewer2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\\\Octave\\\\Octave-4.0.1\\\\bin")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Octave\\Octave-4.0.1\\bin\\octave-cli-4.0.1.exe")]
         public string OctaveExePath {
             get {
                 return ((string)(this["OctaveExePath"]));
@@ -97,7 +97,7 @@ namespace MyWPFMagViewer2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\\\Users\\\\Frank\\\\Documents\\\\Octave")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\Frank\\Documents\\Octave")]
         public string MagDataFolder {
             get {
                 return ((string)(this["MagDataFolder"]));

@@ -66,17 +66,15 @@
         </CheckBox>
         <Menu x:Name="RawOptionsMenu" HorizontalAlignment="Left" Height="20" Margin="375,295,0,0" VerticalAlignment="Top" Width="60">
             <MenuItem x:Name="mi_Options" Header="Options" ContextMenuOpening="mi_Options_ContextMenuOpening" 
-                      Click="mi_Options_Click"  SubmenuOpened="mi_Options_SubmenuOpened" 
                       HorizontalAlignment="Left" Width="60">
-                <MenuItem x:Name="mi_UseSelRadius" Header="Use Selection Radius" ToolTip="Enables radius-based point culling" 
-                          IsCheckable="True" Margin="0,0,0,0" Height="19"  
-                          HorizontalAlignment="Left" Checked="mi_UseSelRadius_Checked"/>
                 <MenuItem x:Name="mi_SelRadius" Header="Selection Radius" ToolTip="Select the radius to be used for point culling" 
                           Click="mi_SelRadius_Click"  Margin="0,0,0,0" HorizontalAlignment="Left" 
                           SubmenuOpened="mi_SelRadius_SubmenuOpened">
                     <TextBox x:Name="tb_SelRadius" Text="1000"/>
                 </MenuItem>
+                <Button x:Name="btn_SelectBeyondRadius" Content="Select Beyond Radius" ToolTip="Select all points beyond radius" Margin="0,0,0,0" Click="btn_SelectBeyondRadius_Click_1"/>
                 <Button x:Name="btn_RemSel" Content="Remove Selected" ToolTip="remove all selected points" Click="btn_RemSel_Click" Margin="0,0,0,0"/>
+                <Button x:Name="btn_SaveRawPtsToFile" Content="Save To File..." ToolTip="save all currently displayed points" Click="btn_SaveRawPtsToFile_Click" Margin="0,0,0,0"/>
             </MenuItem>
         </Menu>
         <Label x:Name="label5" Content="Total Points" HorizontalAlignment="Left" Margin="53,265,0,0" VerticalAlignment="Top"/>

@@ -46,7 +46,6 @@ namespace MyWPFMagViewer2
         private bool bOctaveScriptFileExists = false;
         private bool bOctaveFunctionFileExists = false;
         private bool bOctaveExeFileExists = false;
-        //private string displaystr = ""; //added for mbox display of interim results
         const string quote = "\""; //used to insert double-quote characters
         const string OctaveScriptFile = "MagCalScript.m";
         const string OctaveFunctionFile = "MgnCalibration.m";
@@ -108,7 +107,8 @@ namespace MyWPFMagViewer2
             m_pointsVisual.SetName("magpoints");
             vp_raw.Children.Add(m_pointsVisual);
 
-            selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 2 * POINTSIZE };
+            //selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 2 * POINTSIZE };
+            selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 1.5 * POINTSIZE };
             selPointsVisual.SetName("selpoints");
             vp_raw.Children.Add(selPointsVisual);
 
@@ -121,23 +121,22 @@ namespace MyWPFMagViewer2
             vp_cal.Children.Add(m_CalpointsVisual);
 
             //try adding an ellipse to view
-            EllipsoidVisual3D ell1 = new EllipsoidVisual3D();
-            //SolidColorBrush perimeterbrush = new SolidColorBrush(Colors.Red);
+            //EllipsoidVisual3D ell1 = new EllipsoidVisual3D();
+            MyEllpsoidVisual ell1 = new MyEllpsoidVisual();
+            SolidColorBrush perimeterbrush = new SolidColorBrush(Colors.Red);
             System.Windows.Media.Media3D.Material mat = MaterialHelper.CreateMaterial(new SolidColorBrush(Colors.Red));
-            //ell1.Material = mat;
-            //ell1.BackMaterial = mat;
-            //ell1.Fill = perimeterbrush;
+            ell1.Material = mat;
+            ell1.BackMaterial = mat;
+            ell1.Fill = perimeterbrush;
             ell1.Center = new Point3D(0, 0, 0);
             ell1.RadiusX = 1;
             ell1.RadiusZ = 1;
             ell1.RadiusY = 1;
-            //ell1.Model.BackMaterial = mat;
-            //ell1.Model.Material = mat;
+            ell1.Model.BackMaterial = mat;
+            ell1.Model.Material = mat;
             ell1.Fill = new SolidColorBrush(Colors.White);
-            vp_cal.Children.Add(ell1);
 
-            //EllipseGeometry ell2 = new EllipseGeometry(new System.Windows.Point(0, 0), 1, 1);
-            //vp_cal.Children.Add(ell2);
+            vp_cal.Children.Add(ell1);
             vp_cal.UpdateLayout();
 
             //06/08/16 copied from frmMagManager.cs
@@ -145,14 +144,6 @@ namespace MyWPFMagViewer2
             tbOctavePath.Text = Properties.Settings.Default.OctaveExePath;
             tbOctaveScriptFolder.Text = Properties.Settings.Default.OctaveScriptFolder;
 
-            //06/08/16 experiment with text-wrapping button
-            //RichTextBox rtb = new RichTextBox();
-            //rtb.IsReadOnly = true;
-            //rtb.Focusable = false;
-            //rtb.BorderThickness = new Thickness(0);
-            //rtb.Background = Brushes.Transparent;
-            //rtb.AppendText("Update Raw View");
-            //btn_UpdateRawView.Content = rtb;
         }
 
         //this function is just to generate a static set of test points
@@ -300,55 +291,6 @@ namespace MyWPFMagViewer2
 
             //06/12/16 moved all point move code to function so can call from mi_UseSelRadius_Checked()
             MoveSelToSelPointsVisual();
-
-            //if (selidxcount > 0)
-            //{
-
-            //    int newcount = 1;
-            //    //06/06/16 new try at moving selected points from m_pointsVisual to selPointsVisual
-            //    for (int selidx = selidxcount - 1; selidx >= 0; selidx--)//have to work from top down to avoid crashes
-            //    {
-            //        //retrieve selected point from pointsVisual collection
-            //        int visptidx = m_selidxlist[selidx]; //this is the index into pointsVisual.Points collection
-            //        Point3D selvispt = new Point3D();
-            //        selvispt.X = m_pointsVisual.Points[visptidx].X;
-            //        selvispt.Y = m_pointsVisual.Points[visptidx].Y;
-            //        selvispt.Z = m_pointsVisual.Points[visptidx].Z;
-            //        string selvisptstr = selvispt.X.ToString("F2") + ","
-            //                        + selvispt.Y.ToString("F2") + ","
-            //                        + selvispt.Z.ToString("F2");
-            //        Debug.Print("selected pt (" + selvisptstr + ") added to selPointsVisual Points Collection. Count now "
-            //            + newcount);
-
-            //        //add this point to selPointsVisual
-            //        selPointsVisual.Points.Add(selvispt);
-
-            //        //testing - print out added point
-            //        int addedcount = selPointsVisual.Points.Count;
-            //        Point3D addedpt = new Point3D();
-            //        addedpt = selPointsVisual.Points[addedcount - 1];
-            //        string addedptstr = addedpt.X.ToString("F2") + ","
-            //                        + addedpt.Y.ToString("F2") + ","
-            //                        + addedpt.Z.ToString("F2");
-            //        Debug.Print("added pt (" + addedptstr + ") added to selPointsVisual. Count now "
-            //            + addedcount);
-
-            //        //remove this point from m_pointsVisual collection
-            //        Debug.Print("removing point at m_pointsVisual[" + m_selidxlist[selidx] + "]");
-            //        m_pointsVisual.Points.RemoveAt(m_selidxlist[selidx]);
-            //    }
-
-            //    //DEBUG!!
-            //    Debug.Print("\r\n selPointsVisual Points collection contains the following points");
-            //    foreach (Point3D pt3 in selPointsVisual.Points)
-            //    {
-            //        string newptstr3 = pt3.X.ToString("F2") + ","
-            //                        + pt3.Y.ToString("F2") + ","
-            //                        + pt3.Z.ToString("F2");
-            //        Debug.Print("Selected pt (" + newptstr3 + ")");
-            //    }
-            //}
-
             vp_raw.UpdateLayout();//refresh the 'raw' view
         }
 
@@ -359,10 +301,6 @@ namespace MyWPFMagViewer2
 
         private void frmMainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            //06/08/16 all copied from frmMagManager.cs
-            //this.vp_Raw.ActionMode = viewportActionType.SelectVisibleByPick; //chg 02/13/09 so hidden objects aren't selected
-            //this.vp_Raw.DisplayMode = viewportDisplayType.Shaded; //added 02/12/09
-
             LoadValues();
             SetDefaults();
             SetControlState();
@@ -390,12 +328,6 @@ namespace MyWPFMagViewer2
 
         public void AddLineToRawDataView(System.Drawing.Color txtcolor, string portstr)
         {
-            //rtb_RawMagData.SelectedText = string.Empty;
-            //rtb_RawMagData.SelectionFont = new Font(rtb_RawMagData.SelectionFont, FontStyle.Bold);
-            //rtb_RawMagData.SelectionColor = txtcolor;
-            //rtb_RawMagData.AppendText(portstr);
-            //rtb_RawMagData.ScrollToCaret();
-
             //06/08/16 try with WPF TextBlock object
             tbox_RawMagData.Text = tbox_RawMagData.Text + Environment.NewLine + portstr;
         }
@@ -429,26 +361,6 @@ namespace MyWPFMagViewer2
             lbl_SelPoints.Content = selPointsVisual.Points.Count;
         }
 
-        //public void ProcessCommPortString(string linestr)
-        //{
-        //    //convert commport line into Vector3D object
-        //    Vector3D v3d = GetVector3DFromString(linestr);
-
-        //    //add the line to the rich text box
-        //    AddLineToRawDataView(System.Drawing.Color.Black, linestr);
-
-        //    //add the point to the viewport Entity list
-        //    AddPointToRaw3DView(v3d);
-
-        //    //refresh the view
-        //    //vp_Raw.Refresh();
-        //    //vp_Raw.ZoomFit();
-        //    //lbl_NumRawPoints.Text = vp_Raw.Entities.Count.ToString();
-
-        //    //update controls as necessary
-        //    UpdateControls();
-        //}
-
         private void btn_ClearMagData_Click(object sender, EventArgs e)
         {
             tbox_RawMagData.Text = string.Empty;
@@ -456,24 +368,24 @@ namespace MyWPFMagViewer2
             UpdateControls();
         }
 
-        private void btn_Update3DView_Click(object sender, EventArgs e)
-        {
-            ////don't show message if the raw view is already empty
-            //if (vp_Raw.Entities.Count > 3)
-            //{
-            //    DialogResult res = System.Windows.MessageBox.Show("This will clear existing points in raw 3D view.  Proceed?",
-            //                                        "3D View Clear", System.Windows.MessageBoxButton.YesNoCancel);
-            //    if (res == System.Windows.Forms.DialogResult.Yes)
-            //    {
-            //        XfrTextPointsToRawView();
+        //private void btn_Update3DView_Click(object sender, EventArgs e)
+        //{
+        //    ////don't show message if the raw view is already empty
+        //    //if (vp_Raw.Entities.Count > 3)
+        //    //{
+        //    //    DialogResult res = System.Windows.MessageBox.Show("This will clear existing points in raw 3D view.  Proceed?",
+        //    //                                        "3D View Clear", System.Windows.MessageBoxButton.YesNoCancel);
+        //    //    if (res == System.Windows.Forms.DialogResult.Yes)
+        //    //    {
+        //    //        XfrTextPointsToRawView();
 
-            //    }
-            //}
-            //else
-            //{
-            //    XfrTextPointsToRawView();
-            //}
-        }
+        //    //    }
+        //    //}
+        //    //else
+        //    //{
+        //    //    XfrTextPointsToRawView();
+        //    //}
+        //}
 
         public Vector3D GetVector3DFromString(string linestr)
         {
@@ -935,7 +847,6 @@ namespace MyWPFMagViewer2
         }
 
         //05/13/16 - matrix acquisition abstracted to calling fcn
-        //private string DisplayMatrixSample(string M)
         private string DisplayMatrixSample(string M, double[][] m)
         {
             //double[][] m = octave.GetMatrix(M);
@@ -1089,21 +1000,6 @@ namespace MyWPFMagViewer2
             //Debug.Print("mi_Options_LayoutUpdated");
         }
 
-        private void mi_Options_SubmenuOpened(object sender, RoutedEventArgs e)
-        {
-            System.Windows.Controls.MenuItem mi = (System.Windows.Controls.MenuItem)sender;
-            Debug.Print("mi_Options_SubmenuOpened: Item name = " + mi.Name.ToString());
-            mi_SelRadius.IsEnabled = mi_UseSelRadius.IsChecked;
-            btn_RemSel.IsEnabled = mi_UseSelRadius.IsChecked;
-        }
-
-        //private void USR_Radius_Click(object sender, RoutedEventArgs e)
-        //{
-        //    System.Windows.Controls.MenuItem mi = (System.Windows.Controls.MenuItem)sender;
-        //    Debug.Print("USR_Radius_Click: Item name = " + mi.Name.ToString());
-        //    Debug.Print("USR_Radius Checked State = " + mi.IsChecked.ToString());
-        //}
-
         private void mi_SelRadius_Click(object sender, RoutedEventArgs e)
         {
             System.Windows.Controls.MenuItem mi = (System.Windows.Controls.MenuItem)sender;
@@ -1144,42 +1040,6 @@ namespace MyWPFMagViewer2
             return avgradius;
         }
 
-        private void mi_UseSelRadius_Checked(object sender, RoutedEventArgs e)
-        {
-            Debug.Print("in mi_UseSelRadius_Checked");
-
-            //Purpose: Select all points beyond the radius specified in tb_SelRadius
-            try
-            {
-                double selradius = Convert.ToDouble(tb_SelRadius.Text);//this could fail
-
-                //Step3: copy pointsVisual.Points index of any selected points to m_selidxlist
-                m_selidxlist.Clear();
-                int ptidx = 0;
-                foreach (Point3D vispt in m_pointsVisual.Points)
-                {
-                    double radius = vispt.DistanceTo(new Point3D(0, 0, 0));
-                    if (radius > selradius)
-                    {
-                        m_selidxlist.Add(ptidx); //save the index of the point to be moved
-                    }
-
-                    ptidx++;
-                }
-
-                //move selected points from pointsVisual3D to selpointsVisual3D
-                int selidxcount = m_selidxlist.Count;
-                Debug.Print("Selected Index List Contains " + selidxcount + " items");
-                MoveSelToSelPointsVisual();
-                vp_raw.UpdateLayout();
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
-
         private void MoveSelToSelPointsVisual()
         {
             int selidxcount = m_selidxlist.Count;
@@ -1218,6 +1078,88 @@ namespace MyWPFMagViewer2
                     Debug.Print("removing point at m_pointsVisual[" + m_selidxlist[selidx] + "]");
                     m_pointsVisual.Points.RemoveAt(m_selidxlist[selidx]);
                 }
+            }
+        }
+
+        private void btn_SaveRawPtsToFile_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.Print("In btn_SaveRawPtsToFile_Click");
+
+            //Purpose: Save current contents of raw view to a file - preserving culling op
+            var dlg = new CommonOpenFileDialog();
+            dlg.Title = "Save All Currently Displayed Raw Magnetometer Points";
+            dlg.IsFolderPicker = false;
+            //dlg.InitialDirectory = Environment.CurrentDirectory;
+            dlg.InitialDirectory = tbOctaveScriptFolder.Text;
+            dlg.DefaultExtension = ".txt";
+            dlg.AddToMostRecentlyUsedList = false;
+            dlg.AllowNonFileSystemItems = false;
+            dlg.DefaultDirectory = Environment.CurrentDirectory;
+            dlg.EnsureFileExists = false;
+            dlg.EnsurePathExists = true;
+            dlg.EnsureReadOnly = false;
+            dlg.EnsureValidNames = true;
+            dlg.Multiselect = false;
+            dlg.ShowPlacesList = true;
+
+            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                var savefile = dlg.FileName;
+                Debug.Print("Save file is: " + savefile);
+
+                //save all point in m_pointsVisual to the file
+                int ptssaved = 0;
+                try
+                {
+                    StreamWriter sw = new StreamWriter(savefile);
+                    foreach (Point3D p3d in m_pointsVisual.Points)
+                    {
+                        sw.WriteLine(p3d.ToString());
+                        ptssaved++;
+                    }
+
+                    Debug.Print("Saved " + ptssaved + " points to " + savefile);
+                    sw.Close();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+
+            UpdateControls(); //updates textbox background color
+        }
+
+        private void btn_SelectBeyondRadius_Click_1(object sender, RoutedEventArgs e)
+        {
+            //Purpose: Select all points beyond the radius specified in tb_SelRadius
+            try
+            {
+                double selradius = Convert.ToDouble(tb_SelRadius.Text);//this could fail
+
+                //Step3: copy pointsVisual.Points index of any selected points to m_selidxlist
+                m_selidxlist.Clear();
+                int ptidx = 0;
+                foreach (Point3D vispt in m_pointsVisual.Points)
+                {
+                    double radius = vispt.DistanceTo(new Point3D(0, 0, 0));
+                    if (radius > selradius)
+                    {
+                        m_selidxlist.Add(ptidx); //save the index of the point to be moved
+                    }
+
+                    ptidx++;
+                }
+
+                //move selected points from pointsVisual3D to selpointsVisual3D
+                int selidxcount = m_selidxlist.Count;
+                Debug.Print("Selected Index List Contains " + selidxcount + " items");
+                MoveSelToSelPointsVisual();
+                vp_raw.UpdateLayout();
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
     }

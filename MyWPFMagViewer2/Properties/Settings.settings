@@ -15,13 +15,13 @@
       <Value Profile="(Default)">None</Value>
     </Setting>
     <Setting Name="OctaveScriptFolder" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\\Users\\Frank\\Documents\\Octave</Value>
+      <Value Profile="(Default)">C:\Users\Frank\Documents\Octave</Value>
     </Setting>
     <Setting Name="OctaveExePath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\\Octave\\Octave-4.0.1\\bin</Value>
+      <Value Profile="(Default)">C:\Octave\Octave-4.0.1\bin\octave-cli-4.0.1.exe</Value>
     </Setting>
     <Setting Name="MagDataFolder" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\\Users\\Frank\\Documents\\Octave</Value>
+      <Value Profile="(Default)">C:\Users\Frank\Documents\Octave</Value>
     </Setting>
   </Settings>
 </SettingsFile>
