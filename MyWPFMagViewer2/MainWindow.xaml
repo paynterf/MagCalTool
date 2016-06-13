@@ -68,9 +68,9 @@
             <MenuItem x:Name="mi_Options" Header="Options" ContextMenuOpening="mi_Options_ContextMenuOpening" 
                       Click="mi_Options_Click"  SubmenuOpened="mi_Options_SubmenuOpened" 
                       HorizontalAlignment="Left" Width="60">
-                <MenuItem x:Name="mi_USR_Radius" Header="Use Selection Radius" ToolTip="Enables radius-based point culling" 
-                          IsCheckable="True" Click="USR_Radius_Click" Margin="0,0,0,0" Height="19"  
-                          HorizontalAlignment="Left"/>
+                <MenuItem x:Name="mi_UseSelRadius" Header="Use Selection Radius" ToolTip="Enables radius-based point culling" 
+                          IsCheckable="True" Margin="0,0,0,0" Height="19"  
+                          HorizontalAlignment="Left" Checked="mi_UseSelRadius_Checked"/>
                 <MenuItem x:Name="mi_SelRadius" Header="Selection Radius" ToolTip="Select the radius to be used for point culling" 
                           Click="mi_SelRadius_Click"  Margin="0,0,0,0" HorizontalAlignment="Left" 
                           SubmenuOpened="mi_SelRadius_SubmenuOpened">
