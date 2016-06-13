@@ -52,7 +52,12 @@
         <Button x:Name="btn_Import" Content="Import..." HorizontalAlignment="Left" Margin="840,95,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_Import_Click"/>
         <Button x:Name="btn_SaveAs" Content="Save..." HorizontalAlignment="Left" Margin="840,122,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_SaveAs_Click"/>
         <Button x:Name="btn_ClearMagData" Content="Clear Data" HorizontalAlignment="Left" Margin="840,150,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_ClearMagData_Click"/>
-        <Button x:Name="btn_UpdateRawView" Content="Update Raw View"  HorizontalAlignment="Left" Margin="840,181,0,0" VerticalAlignment="Top"   Width="75" Padding ="2" Click="btn_UpdateRawView_Click"/>
+        <Button x:Name="btn_UpdateRawView" HorizontalAlignment="Left" Margin="840,181,0,0" VerticalAlignment="Top"   Width="75" Padding ="2" Click="btn_UpdateRawView_Click">
+            <TextBlock HorizontalAlignment="Center">
+                <AccessText TextWrapping="Wrap"    
+                    Text="Update Raw View" Width="51" Height="33" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </TextBlock>
+        </Button>
         <TextBox x:Name="tbox_RawMagData" HorizontalAlignment="Left" Height="153" Margin="235,102,0,0" TextWrapping="Wrap" 
                  Text="TextBox" VerticalAlignment="Top" Width="585"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
