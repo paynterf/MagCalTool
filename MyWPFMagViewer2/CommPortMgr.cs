@@ -159,29 +159,6 @@ namespace MyWPFMagViewer2
 
         #endregion
 
-        //void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        //{
-        //    try
-        //    {
-        //        //read data waiting in the buffer, one whole line at a time
-        //        string linestr = comPort.ReadLine();
-
-        //        //transfer the serial data to the main thread.  have to use Invoke for cross-thread ops
-        //        //_frmMgr.Invoke
-        //        _frmMgr.Dispatcher.Invoke
-        //        (new EventHandler
-        //            (delegate
-        //                {
-        //                    _frmMgr.ProcessCommPortString(linestr);
-        //                }
-        //            )
-        //        );
-        //    }
-        //    catch (Exception err)
-        //    {
-        //        System.Windows.MessageBox.Show(err.Message);
-        //    }
-        //}
 
         //see http://stackoverflow.com/questions/19701731/parameter-count-mismatch-while-invoking-method
         void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -194,26 +171,31 @@ namespace MyWPFMagViewer2
                 //transfer the serial data to the main thread.  have to use Invoke for cross-thread ops
                 //06/11/16 use BeginInvoke vs Invoke to avoide port closing hangs (don't know why).
                 //see #3 tip at https://blogs.msdn.microsoft.com/bclteam/2006/10/10/top-5-serialport-tips-kim-hamilton/
-                //_frmMgr.Dispatcher.Invoke(new Action(() => UpdateTextbox(linestr)));
-                _frmMgr.Dispatcher.BeginInvoke(new Action(() => UpdateTextbox(linestr)));
+                //_frmMgr.Dispatcher.BeginInvoke(new Action(() => UpdateTextbox(linestr)));
+                _frmMgr.Dispatcher.BeginInvoke(new Action(() => _frmMgr.ProcessCommPortString(linestr)));
             }
             catch (Exception err)
             {
                 System.Windows.MessageBox.Show(err.Message);
             }
         }
-        public void UpdateTextbox(string msg)
-        {
-            try
-            {
-                _frmMgr.tbox_RawMagData.Text += msg;
-                _frmMgr.lbl_NumRtbLines.Content = _frmMgr.tbox_RawMagData.LineCount;
-                _frmMgr.tbox_RawMagData.ScrollToEnd();
-            }
-            catch (Exception ex)
-            {
-                //log ex
-            }
-        }
+
+        //06/13/16 no longer needed - now using ProcessCommPortString() in MainWindow.xaml.cs
+        //public void UpdateTextbox(string msg)
+        //{
+        //    try
+        //    {
+        //        _frmMgr.tbox_RawMagData.Text += msg;
+        //        _frmMgr.lbl_NumRtbLines.Content = _frmMgr.tbox_RawMagData.LineCount;
+        //        _frmMgr.tbox_RawMagData.ScrollToEnd();
+
+        //        //add point to raw viewport
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+        //}
     }
 }

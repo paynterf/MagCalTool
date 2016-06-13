@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("MyWPFMagViewer2")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Windows User")]
+[assembly: AssemblyCompany("EM Workbench LLC")]
 [assembly: AssemblyProduct("MyWPFMagViewer2")]
-[assembly: AssemblyCopyright("Copyright © Windows User 2016")]
+[assembly: AssemblyCopyright("Copyright © EM Workbench 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

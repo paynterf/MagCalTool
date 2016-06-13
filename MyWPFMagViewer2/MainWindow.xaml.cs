@@ -684,6 +684,11 @@ namespace MyWPFMagViewer2
             {
                 return;
             }
+            //clear the calibrated display so will be easier to tell when refreshed
+            //has to be above WaitCursor() call, as DoEvents() resets cursor to default
+            m_CalpointsVisual.Points.Clear();
+            vp_cal.UpdateLayout();
+            DoEvents();
 
             using (new WaitCursor())
             {
@@ -708,27 +713,12 @@ namespace MyWPFMagViewer2
 
                     //save raw points to temp file
                     StreamWriter sw = new StreamWriter(fullPathToRawDatafile);
-                    //foreach (Entity ent in vp_Raw.Entities)
-                    //{
-                    //    //have to check entity type - can be Ellipse
-                    //    if (ent.GetType() == typeof(devDept.Eyeshot.Standard.Point))
-                    //    {
-                    //        Vector3D pt = (Vector3D)ent.EntityData;
-                    //        sw.WriteLine(pt.X + ", " + pt.Y + ", " + pt.Z);
-                    //    }
-                    //}
                     foreach (Point3D pt3d in m_pointsVisual.Points)
                     {
-                        //have to check entity type - can be Ellipse
                         sw.WriteLine(pt3d.ToString());
                     }
                     sw.Close();
 
-                    //clear the calibrated display so will be easier to tell when refreshed
-                    //vp_Calibrated.Entities.Clear();
-                    //vp_Calibrated.Refresh();
-                    m_CalpointsVisual.Points.Clear();
-                    vp_cal.UpdateLayout();
 
                     //execute the script
                     double[][] A;
@@ -756,6 +746,7 @@ namespace MyWPFMagViewer2
 
                     //plot Caldata in 'Calibrated' view
                     UpdateCalViewport();
+                    vp_cal.ZoomExtents();
                 }
                 catch (Exception err)
                 {
@@ -1244,5 +1235,42 @@ namespace MyWPFMagViewer2
                 throw;
             }
         }
-     }
+
+        //this is called from CommPortMgr.cs
+        public void ProcessCommPortString(string linestr)
+        {
+            //Debug.Print("In ProcessCommPortString with linestr = " + linestr);
+            try
+            {
+                tbox_RawMagData.Text += linestr;
+                lbl_NumRtbLines.Content = tbox_RawMagData.LineCount;
+                tbox_RawMagData.ScrollToEnd();
+
+                //add point to raw viewport
+
+                try
+                {
+                    Point3D pt3d = new Point3D();
+                    pt3d = GetPoint3DFromString(linestr);
+                    m_pointsVisual.Points.Add(pt3d);
+                    vp_raw.UpdateLayout();
+                }
+                catch (Exception)
+                {
+                    Debug.Print("Failed to convert " + linestr + " to Point3D object");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        //called by 'Zoom Extents' raw view option button
+        private void btn_ZoomExtents_Click(object sender, RoutedEventArgs e)
+        {
+            vp_raw.ZoomExtents();
+        }
+    }
 }
+

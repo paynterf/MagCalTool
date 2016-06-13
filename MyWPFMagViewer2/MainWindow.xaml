@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MyWPFMagViewer2"
         xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="Magnetometer Calibration Utility" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="NoResize">
+        Title="EM Workbench Magnetometer Calibration Utility Version 1.0.0" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="NoResize">
     <Grid>
         <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" 
                            CoordinateSystemVerticalPosition="Center" Orthographic="True" 
@@ -80,6 +80,7 @@
                 <Button x:Name="btn_SelectBeyondRadius" Content="Select Beyond Radius" ToolTip="Select all points beyond radius" Margin="0,0,0,0" Click="btn_SelectBeyondRadius_Click_1"/>
                 <Button x:Name="btn_RemSel" Content="Remove Selected" ToolTip="remove all selected points" Click="btn_RemSel_Click" Margin="0,0,0,0"/>
                 <Button x:Name="btn_SaveRawPtsToFile" Content="Save To File..." ToolTip="save all currently displayed points" Click="btn_SaveRawPtsToFile_Click" Margin="0,0,0,0"/>
+                <Button x:Name="btn_ZoomExtents" Content="Zoom Extents" ToolTip="Ensure all recorded points are visible" Click="btn_ZoomExtents_Click" Margin="0,0,0,0"/>
             </MenuItem>
         </Menu>
         <Label x:Name="label5" Content="Total Points" HorizontalAlignment="Left" Margin="53,265,0,0" VerticalAlignment="Top"/>
