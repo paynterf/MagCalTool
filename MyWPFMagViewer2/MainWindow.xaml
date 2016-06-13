@@ -9,8 +9,8 @@
         Title="Magnetometer Calibration Utility" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="NoResize">
     <Grid>
         <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" 
-                           CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" 
-                           Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB" ShowCameraInfo="True"/>
+                           CoordinateSystemVerticalPosition="Center" Orthographic="True" 
+                           Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB" ShowCameraTarget="False" ShowCoordinateSystem="True"/>
         <h:HelixViewport3D x:Name="vp_cal" Margin="560,290,32,130" MouseDown="vp_cal_MouseDown" CoordinateSystemHorizontalPosition="Center" 
                 CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" 
                 Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB"/>
@@ -51,7 +51,7 @@
         <Label x:Name="lbl_NumRtbLines" Content="None" HorizontalAlignment="Left" Margin="519,76,0,0" VerticalAlignment="Top" Height="21" Padding ="2"/>
         <Button x:Name="btn_Import" Content="Import..." HorizontalAlignment="Left" Margin="840,95,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_Import_Click"/>
         <Button x:Name="btn_SaveAs" Content="Save..." HorizontalAlignment="Left" Margin="840,122,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_SaveAs_Click"/>
-        <Button x:Name="btn_ClearMagData" Content="Clear Data" HorizontalAlignment="Left" Margin="840,150,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_ClearMagData_Click_1"/>
+        <Button x:Name="btn_ClearMagData" Content="Clear Data" HorizontalAlignment="Left" Margin="840,150,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_ClearMagData_Click"/>
         <Button x:Name="btn_UpdateRawView" Content="Update Raw View"  HorizontalAlignment="Left" Margin="840,181,0,0" VerticalAlignment="Top" Width="75" Padding ="2" Click="btn_UpdateRawView_Click"/>
         <TextBox x:Name="tbox_RawMagData" HorizontalAlignment="Left" Height="153" Margin="235,102,0,0" TextWrapping="Wrap" 
                  Text="TextBox" VerticalAlignment="Top" Width="585"
@@ -83,5 +83,36 @@
         <Label x:Name="lbl_SelPoints" Content="None" HorizontalAlignment="Left" Margin="235,265,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label6" Content="Average Radius" HorizontalAlignment="Left" Margin="295,265,0,0" VerticalAlignment="Top"/>
         <Label x:Name="lbl_AvgRadius" Content="None" HorizontalAlignment="Left" Margin="391,265,0,0" VerticalAlignment="Top"/>
+        <GroupBox x:Name="gbox_Expr" Header="Compensaton Expression" HorizontalAlignment="Left" Height="110" Margin="30,690,0,0" VerticalAlignment="Top" Width="345">
+            <Grid>
+            <Label x:Name="label8" Content="W = U*(V-C), where V = raw mag value, C = center offset" HorizontalAlignment="Left" Margin="5,2,0,0" VerticalAlignment="Top"/>
+            <Label x:Name="label9" Content="Wx = U11*(Vx-Cx)+U12*(Vy-Cy)+U13*(Vz-Cz)" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top"/>
+            <Label x:Name="label10" Content="Wx = U21*(Vx-Cx)+U22*(Vy-Cy)+U23*(Vz-Cz)" HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top"/>
+            <Label x:Name="label11" Content="Wx = U31*(Vx-Cx)+U32*(Vy-Cy)+U33*(Vz-Cz)" HorizontalAlignment="Left" Margin="20,60,0,0" VerticalAlignment="Top"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="gbox_SphComp" Header="Spherical Compensaton Matrix U" HorizontalAlignment="Left" Height="110" Margin="420,690,0,0" VerticalAlignment="Top" Width="345">
+            <Grid>
+                <Label x:Name="lbl_U11" Content="U11" HorizontalAlignment="Left" Margin="5,2,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U21" Content="U21" HorizontalAlignment="Left" Margin="5,27,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U31" Content="U31" HorizontalAlignment="Left" Margin="5,52,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U12" Content="U12" HorizontalAlignment="Left" Margin="95,2,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U22" Content="U22" HorizontalAlignment="Left" Margin="95,27,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U32" Content="U32" HorizontalAlignment="Left" Margin="95,52,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U13" Content="U13" HorizontalAlignment="Left" Margin="185,2,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U23" Content="U23" HorizontalAlignment="Left" Margin="185,27,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_U33" Content="U33" HorizontalAlignment="Left" Margin="185,52,0,0" VerticalAlignment="Top"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="gbox_CtrOffset" Header="Compensaton Expression" HorizontalAlignment="Left" Height="110" Margin="800,690,0,0" VerticalAlignment="Top" Width="160">
+            <Grid>
+                <Label x:Name="label12" Content="Cx" HorizontalAlignment="Left" Margin="5,2,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="label13" Content="Cy" HorizontalAlignment="Left" Margin="5,27,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="label14" Content="Cz" HorizontalAlignment="Left" Margin="5,52,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_Cx" Content="Cx" HorizontalAlignment="Left" Margin="25,2,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_Cy" Content="Cy" HorizontalAlignment="Left" Margin="25,27,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="lbl_Cz" Content="Cz" HorizontalAlignment="Left" Margin="25,52,0,0" VerticalAlignment="Top"/>
+            </Grid>
+        </GroupBox>
     </Grid>
 </Window>

@@ -122,22 +122,22 @@ namespace MyWPFMagViewer2
 
             //try adding an ellipse to view
             //EllipsoidVisual3D ell1 = new EllipsoidVisual3D();
-            MyEllpsoidVisual ell1 = new MyEllpsoidVisual();
-            SolidColorBrush perimeterbrush = new SolidColorBrush(Colors.Red);
-            System.Windows.Media.Media3D.Material mat = MaterialHelper.CreateMaterial(new SolidColorBrush(Colors.Red));
-            ell1.Material = mat;
-            ell1.BackMaterial = mat;
-            ell1.Fill = perimeterbrush;
-            ell1.Center = new Point3D(0, 0, 0);
-            ell1.RadiusX = 1;
-            ell1.RadiusZ = 1;
-            ell1.RadiusY = 1;
-            ell1.Model.BackMaterial = mat;
-            ell1.Model.Material = mat;
-            ell1.Fill = new SolidColorBrush(Colors.White);
+            //MyEllpsoidVisual ell1 = new MyEllpsoidVisual();
+            //SolidColorBrush perimeterbrush = new SolidColorBrush(Colors.Red);
+            //System.Windows.Media.Media3D.Material mat = MaterialHelper.CreateMaterial(new SolidColorBrush(Colors.Red));
+            //ell1.Material = mat;
+            //ell1.BackMaterial = mat;
+            //ell1.Fill = perimeterbrush;
+            //ell1.Center = new Point3D(0, 0, 0);
+            //ell1.RadiusX = 1;
+            //ell1.RadiusZ = 1;
+            //ell1.RadiusY = 1;
+            //ell1.Model.BackMaterial = mat;
+            //ell1.Model.Material = mat;
+            //ell1.Fill = new SolidColorBrush(Colors.White);
 
-            vp_cal.Children.Add(ell1);
-            vp_cal.UpdateLayout();
+            //vp_cal.Children.Add(ell1);
+            //vp_cal.UpdateLayout();
 
             //06/08/16 copied from frmMagManager.cs
             //Load file/folder boxes with default contents from config file
@@ -364,7 +364,6 @@ namespace MyWPFMagViewer2
         private void btn_ClearMagData_Click(object sender, EventArgs e)
         {
             tbox_RawMagData.Text = string.Empty;
-            lbl_NumRtbLines.Content = "None";
             UpdateControls();
         }
 
@@ -675,7 +674,95 @@ namespace MyWPFMagViewer2
 
         private void btn_Compute_Click(object sender, RoutedEventArgs e)
         {
+            DialogResult res = System.Windows.Forms.MessageBox.Show("This will compute the best estimate calibration values"
+                + " based on the current contents of the 'raw' viewport"
+                + " and display the calibrated results in the 'Calibrated' viewport."
+                + "  This can take a while - Proceed?", "Magnetometer Data Calibration",
+                MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
 
+            if (res != System.Windows.Forms.DialogResult.Yes)
+            {
+                return;
+            }
+
+            using (new WaitCursor())
+            {
+
+                try
+                {
+                    octave = new Octave(tbOctavePath.Text, false);
+                }
+                catch (Exception err)
+                {
+                    System.Windows.Forms.MessageBox.Show("Octave 'new' command failed with message: " + err.Message);
+                    return;
+                }
+
+                //if we get to here, we have a valid octave object
+                //load points from 'raw' viewport into 'rawpts.txt' for use by Octave
+                string fullPathToRawDatafile = tbOctaveScriptFolder.Text + ".\\" + OctaveRawDataFile;
+
+                try
+                {
+                    //int numpts = vp_Raw.Entities.Count;
+
+                    //save raw points to temp file
+                    StreamWriter sw = new StreamWriter(fullPathToRawDatafile);
+                    //foreach (Entity ent in vp_Raw.Entities)
+                    //{
+                    //    //have to check entity type - can be Ellipse
+                    //    if (ent.GetType() == typeof(devDept.Eyeshot.Standard.Point))
+                    //    {
+                    //        Vector3D pt = (Vector3D)ent.EntityData;
+                    //        sw.WriteLine(pt.X + ", " + pt.Y + ", " + pt.Z);
+                    //    }
+                    //}
+                    foreach (Point3D pt3d in m_pointsVisual.Points)
+                    {
+                        //have to check entity type - can be Ellipse
+                        sw.WriteLine(pt3d.ToString());
+                    }
+                    sw.Close();
+
+                    //clear the calibrated display so will be easier to tell when refreshed
+                    //vp_Calibrated.Entities.Clear();
+                    //vp_Calibrated.Refresh();
+                    m_CalpointsVisual.Points.Clear();
+                    vp_cal.UpdateLayout();
+
+                    //execute the script
+                    double[][] A;
+                    double[] c;
+                    ExecuteOctaveScript(fullPathToRawDatafile, out A, out c, out Caldata); //actually execute the script
+
+                    //display results
+                    //05/13/16 - update 'U' labels
+                    lbl_U11.Content = A[0][0].ToString();
+                    lbl_U12.Content = A[0][1].ToString();
+                    lbl_U13.Content = A[0][2].ToString();
+
+                    lbl_U21.Content = A[1][0].ToString();
+                    lbl_U22.Content = A[1][1].ToString();
+                    lbl_U23.Content = A[1][2].ToString();
+
+                    lbl_U31.Content = A[2][0].ToString();
+                    lbl_U32.Content = A[2][1].ToString();
+                    lbl_U33.Content = A[2][2].ToString();
+
+                    ////05/13/16 - update 'C' labels
+                    lbl_Cx.Content = c[0].ToString();
+                    lbl_Cy.Content = c[1].ToString();
+                    lbl_Cz.Content = c[2].ToString();
+
+                    //plot Caldata in 'Calibrated' view
+                    UpdateCalViewport();
+                }
+                catch (Exception err)
+                {
+                    System.Windows.Forms.MessageBox.Show("Failed to write raw data to " + fullPathToRawDatafile + ": " + err.Message);
+                    return;
+                }
+            }
         }
 
         private void checkBox_Click(object sender, RoutedEventArgs e)
@@ -915,17 +1002,14 @@ namespace MyWPFMagViewer2
 
         private void UpdateCalViewport()
         {
-            //vp_Calibrated.Entities.Clear();
-            //vp_Calibrated.Refresh();
-
+            m_CalpointsVisual.Points.Clear();
             Vector3D pt3D = new Vector3D(0, 0, 0);
             for (int i = 0; i < Caldata.Length; i++)
             {
                 pt3D.X = Caldata[i][0];
                 pt3D.Y = Caldata[i][1];
                 pt3D.Z = Caldata[i][2];
-                //devDept.Eyeshot.Standard.Point pt = new devDept.Eyeshot.Standard.Point(pt3D, Color.Black);
-                //vp_Calibrated.Entities.Add(pt);
+                m_CalpointsVisual.Points.Add(new Point3D(pt3D.X, pt3D.Y, pt3D.Z));
             }
 
             //draw unit radius reference circles if selected
@@ -940,9 +1024,7 @@ namespace MyWPFMagViewer2
                 //vp_Calibrated.Entities.Add(ell);
             }
 
-            //vp_Calibrated.Refresh();
-            //vp_Calibrated.ZoomFit();
-
+            vp_cal.UpdateLayout();
         }
 
         //see http://stackoverflow.com/questions/4502037/where-is-the-application-doevents-in-wpf
@@ -1162,5 +1244,5 @@ namespace MyWPFMagViewer2
                 throw;
             }
         }
-    }
+     }
 }
