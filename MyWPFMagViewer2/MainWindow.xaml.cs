@@ -292,6 +292,7 @@ namespace MyWPFMagViewer2
             //06/12/16 moved all point move code to function so can call from mi_UseSelRadius_Checked()
             MoveSelToSelPointsVisual();
             vp_raw.UpdateLayout();//refresh the 'raw' view
+            UpdateControls();
         }
 
         private void vp_cal_MouseDown(object sender, MouseButtonEventArgs e)
