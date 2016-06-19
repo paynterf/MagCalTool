@@ -412,16 +412,43 @@ namespace MyWPFMagViewer2
 
         private Point3D GetPoint3DFromString(string linestr)
         {
+            //06/18/16 rev to accommodate 1,2 & 3 element data
             Point3D pt = new Point3D();
 
             try
             {
-                string[] ptstrArray = linestr.Split(',');
-                if (ptstrArray.Length == 3)
+                //string[] ptstrArray = linestr.Split(new char[]{ ',','\t',' '});
+                //if (ptstrArray.Length == 3)
+                //{
+                //    pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
+                //    pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
+                //    pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
+                //}
+
+                //06/18/16 rev to accommodate 1,2,3 element data
+                string[] ptstrArray = linestr.Split(new char[] { ',', '\t', ' ' });
+                switch (ptstrArray.Length)
                 {
-                    pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
-                    pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
-                    pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
+                    case 1:
+                        pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
+                        pt.Y = 0;
+                        pt.Z = 0;
+                        break;
+                    case 2:
+                        pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
+                        pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
+                        pt.Z = 0;
+                        break;
+                    case 3:
+                        pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
+                        pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
+                        pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
+                        break;
+                    default:
+                        pt.X = 0;
+                        pt.Y = 0;
+                        pt.Z = 0;
+                        break;
                 }
             }
             catch (Exception e)
@@ -1253,6 +1280,7 @@ namespace MyWPFMagViewer2
                 {
                     Point3D pt3d = new Point3D();
                     pt3d = GetPoint3DFromString(linestr);
+                    //Debug.Print("GetPoint3DFromString(" + linestr + ") returned " + pt3d.ToString());
                     m_pointsVisual.Points.Add(pt3d);
                     vp_raw.UpdateLayout();
                 }
@@ -1260,6 +1288,8 @@ namespace MyWPFMagViewer2
                 {
                     Debug.Print("Failed to convert " + linestr + " to Point3D object");
                 }
+
+                UpdateControls();
             }
             catch (Exception ex)
             {
