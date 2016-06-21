@@ -1234,12 +1234,21 @@ namespace MyWPFMagViewer2
         private void btn_SelectBeyondRadius_Click_1(object sender, RoutedEventArgs e)
         {
             //Purpose: Select all points beyond the radius specified in tb_SelRadius
+            //Plan:
+            //  Step1: Clear list of selected indices, and all points from selPointsVisual.Points list
+            //  Step2: Iterate through all m_pointsVisual points & copy index of any qualifying points to m_selidxlist
+            //  Step3: For each index in m_selidxlist, move assoc pt from m_pointsVisaul to selPointsVisual
+            //  Step4: Update 'selected' count label
+
             try
             {
                 double selradius = Convert.ToDouble(tb_SelRadius.Text);//this could fail
 
-                //Step3: copy pointsVisual.Points index of any selected points to m_selidxlist
+                //Step1: Clear list of selected indices, and all points from selPointsVisual.Points list
                 m_selidxlist.Clear();
+                selPointsVisual.Points.Clear(); //added 06/21/16
+
+                //Step2: Iterate through all m_pointsVisual points & copy index of any qualifying points to m_selidxlist
                 int ptidx = 0;
                 foreach (Point3D vispt in m_pointsVisual.Points)
                 {
@@ -1252,11 +1261,14 @@ namespace MyWPFMagViewer2
                     ptidx++;
                 }
 
-                //move selected points from pointsVisual3D to selpointsVisual3D
+                //Step3: For each index in m_selidxlist, move assoc pt from m_pointsVisaul to selPointsVisual
                 int selidxcount = m_selidxlist.Count;
                 Debug.Print("Selected Index List Contains " + selidxcount + " items");
                 MoveSelToSelPointsVisual();
+
+                //  Step4: Update view & 'selected' count label
                 vp_raw.UpdateLayout();
+                UpdateControls();
             }
             catch (Exception)
             {
