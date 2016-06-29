@@ -345,10 +345,6 @@ namespace MyWPFMagViewer2
             btn_ClearMagData.IsEnabled = !bCommPortOpen;
             btn_UpdateRawView.IsEnabled = !bCommPortOpen && tbox_RawMagData.LineCount > 0;
 
-            //Compute button
-            //btn_Compute.Enabled = vp_Raw.Entities.Count >= MIN_COMP_POINTS
-            //    && bOctaveFunctionFileExists && bOctaveScriptFileExists;
-
             //Refresh Ports button
             btn_RefreshPorts.IsEnabled = !bCommPortOpen;
 
@@ -360,6 +356,14 @@ namespace MyWPFMagViewer2
             lbl_AvgRadius.Content = GetRawAvgRadius().ToString("F2");
             lbl_NumPoints.Content = m_pointsVisual.Points.Count;
             lbl_SelPoints.Content = selPointsVisual.Points.Count;
+
+            //Compute button
+            btn_Compute.IsEnabled = m_pointsVisual.Points.Count >= MIN_COMP_POINTS
+                && bOctaveFunctionFileExists && bOctaveScriptFileExists;
+
+            //Compensation value save button added 06 / 29 / 16
+            string compvalstr = lbl_U11.Content.ToString();
+            btn_SaveCompVals.IsEnabled = !compvalstr.Contains("U11");
         }
 
         private void btn_ClearMagData_Click(object sender, EventArgs e)
@@ -775,6 +779,7 @@ namespace MyWPFMagViewer2
                     //plot Caldata in 'Calibrated' view
                     UpdateCalViewport();
                     vp_cal.ZoomExtents();
+                    UpdateControls(); //added 06/29/16 to refresh 'SaveCompVals...' button state
                 }
                 catch (Exception err)
                 {
@@ -1313,6 +1318,76 @@ namespace MyWPFMagViewer2
         private void btn_ZoomExtents_Click(object sender, RoutedEventArgs e)
         {
             vp_raw.ZoomExtents();
+        }
+
+        private void btn_SaveCompVals_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.Print("In btn_SaveCompVals_Click");
+
+            //Purpose: Save current compensation values to a text file
+            var dlg = new CommonOpenFileDialog();
+            dlg.Title = "Save Currently Displayed Compensation Values";
+            dlg.IsFolderPicker = false;
+            dlg.InitialDirectory = Environment.CurrentDirectory;
+            //dlg.InitialDirectory = tbOctaveScriptFolder.Text;
+            dlg.DefaultExtension = ".txt";
+            dlg.AddToMostRecentlyUsedList = false;
+            dlg.AllowNonFileSystemItems = false;
+            dlg.DefaultDirectory = Environment.CurrentDirectory;
+            dlg.EnsureFileExists = false;
+            dlg.EnsurePathExists = true;
+            dlg.EnsureReadOnly = false;
+            dlg.EnsureValidNames = true;
+            dlg.Multiselect = false;
+            dlg.ShowPlacesList = true;
+
+            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                var savefile = dlg.FileName;
+                Debug.Print("Save file is: " + savefile);
+
+                //save all non-zero compensation values
+                try
+                {
+                    StreamWriter sw = new StreamWriter(savefile);
+
+                    //write out date and time
+                    sw.WriteLine("Magnetometer Compensation Values Saved " + DateTime.Now.ToString("F"));
+                    sw.WriteLine(); //blank line
+
+                    //compensation matrix
+                    sw.WriteLine("Compensation Matrix");
+
+                    //1st row
+                    sw.WriteLine("U11: " + lbl_U11.Content);
+                    sw.WriteLine("U12: " + lbl_U12.Content);
+                    sw.WriteLine("U13: " + lbl_U13.Content);
+
+                    //2nd row - only U22 & U23 are non-zero
+                    sw.WriteLine("U22: " + lbl_U22.Content);
+                    sw.WriteLine("U23: " + lbl_U23.Content);
+
+                    //3rd row - only U33 non-zero
+                    sw.WriteLine("U33: " + lbl_U33.Content);
+                    sw.WriteLine(); //blank line
+
+                    //Center offset
+                    sw.WriteLine("Center Offset");
+
+                    sw.WriteLine("Cx: " + lbl_Cx.Content);
+                    sw.WriteLine("Cx: " + lbl_Cy.Content);
+                    sw.WriteLine("Cx: " + lbl_Cz.Content);
+
+                    Debug.Print("Saved Compensation values to " + savefile);
+                    sw.Close();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+
+            UpdateControls(); //updates textbox background color
         }
     }
 }

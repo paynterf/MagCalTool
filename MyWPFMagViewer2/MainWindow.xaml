@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MyWPFMagViewer2"
         xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="EM Workbench Magnetometer Calibration Utility Version 1.0.3" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
+        Title="EM Workbench Magnetometer Calibration Utility Version 1.1.0" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
     <Grid>
         <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" 
                            CoordinateSystemVerticalPosition="Center" Orthographic="True" 
@@ -97,7 +97,7 @@
             <Label x:Name="label11" Content="Wx = U31*(Vx-Cx)+U32*(Vy-Cy)+U33*(Vz-Cz)" HorizontalAlignment="Left" Margin="20,60,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="gbox_SphComp" Header="Spherical Compensaton Matrix U" HorizontalAlignment="Left" Height="110" Margin="420,690,0,0" VerticalAlignment="Top" Width="345">
+        <GroupBox x:Name="gbox_SphComp" Header="Spherical Compensaton Matrix U" HorizontalAlignment="Left" Height="110" Margin="386,690,0,0" VerticalAlignment="Top" Width="274">
             <Grid>
                 <Label x:Name="lbl_U11" Content="U11" HorizontalAlignment="Left" Margin="5,2,0,0" VerticalAlignment="Top"/>
                 <Label x:Name="lbl_U21" Content="U21" HorizontalAlignment="Left" Margin="5,27,0,0" VerticalAlignment="Top"/>
@@ -110,7 +110,7 @@
                 <Label x:Name="lbl_U33" Content="U33" HorizontalAlignment="Left" Margin="185,52,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="gbox_CtrOffset" Header="Center Offset" HorizontalAlignment="Left" Height="110" Margin="800,690,0,0" VerticalAlignment="Top" Width="160">
+        <GroupBox x:Name="gbox_CtrOffset" Header="Center Offset" HorizontalAlignment="Left" Height="110" Margin="695,690,0,0" VerticalAlignment="Top" Width="160">
             <Grid>
                 <Label x:Name="label12" Content="Cx" HorizontalAlignment="Left" Margin="5,2,0,0" VerticalAlignment="Top"/>
                 <Label x:Name="label13" Content="Cy" HorizontalAlignment="Left" Margin="5,27,0,0" VerticalAlignment="Top"/>
@@ -120,5 +120,11 @@
                 <Label x:Name="lbl_Cz" Content="Cz" HorizontalAlignment="Left" Margin="25,52,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
+        <Button x:Name="btn_SaveCompVals" HorizontalAlignment="Left" Margin="871,724,0,0" VerticalAlignment="Top"   Width="75" Padding ="2" Click="btn_SaveCompVals_Click">
+            <TextBlock HorizontalAlignment="Center">
+                <AccessText TextWrapping="Wrap"    
+                    Text="Save Vals To Text File..." Width="51" Height="52" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </TextBlock>
+        </Button>
     </Grid>
 </Window>
