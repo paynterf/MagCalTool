@@ -352,6 +352,10 @@ namespace MyWPFMagViewer2
             tbOctaveScriptFolder.Background = (bOctaveScriptFileExists && bOctaveFunctionFileExists) ? Brushes.LightGreen : Brushes.LightPink;
             tbOctavePath.Background = (bOctaveExeFileExists) ? Brushes.LightGreen : Brushes.LightPink;
 
+            //text view stats labels
+            tbox_RawMagData.Text = tbox_RawMagData.Text.Trim();
+            lbl_NumRtbLines.Content = (tbox_RawMagData.Text.Length > 0) ? tbox_RawMagData.LineCount.ToString() : "0";
+
             //raw view stats labels
             lbl_AvgRadius.Content = GetRawAvgRadius().ToString("F2");
             lbl_NumPoints.Content = m_pointsVisual.Points.Count;
@@ -371,25 +375,6 @@ namespace MyWPFMagViewer2
             tbox_RawMagData.Text = string.Empty;
             UpdateControls();
         }
-
-        //private void btn_Update3DView_Click(object sender, EventArgs e)
-        //{
-        //    ////don't show message if the raw view is already empty
-        //    //if (vp_Raw.Entities.Count > 3)
-        //    //{
-        //    //    DialogResult res = System.Windows.MessageBox.Show("This will clear existing points in raw 3D view.  Proceed?",
-        //    //                                        "3D View Clear", System.Windows.MessageBoxButton.YesNoCancel);
-        //    //    if (res == System.Windows.Forms.DialogResult.Yes)
-        //    //    {
-        //    //        XfrTextPointsToRawView();
-
-        //    //    }
-        //    //}
-        //    //else
-        //    //{
-        //    //    XfrTextPointsToRawView();
-        //    //}
-        //}
 
         public Vector3D GetVector3DFromString(string linestr)
         {
@@ -647,11 +632,6 @@ namespace MyWPFMagViewer2
             }
         }
 
-        private void btn_ClearMagData_Click_1(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void btn_UpdateRawView_Click(object sender, RoutedEventArgs e)
         {
             //Purpose: transfer contents of raw magnetometer data text window to 'raw' 3D viewport
@@ -669,7 +649,8 @@ namespace MyWPFMagViewer2
             //Step2: Add all points to raw 3D view
             StringReader sr = new StringReader(tbox_RawMagData.Text);
             string linestr = string.Empty;
-            int linenum = 1;
+            //int linenum = 1;
+            int linenum = 0;
             int errnum = 0;
             Point3D pt3d = new Point3D();
 
@@ -682,17 +663,24 @@ namespace MyWPFMagViewer2
                     try
                     {
                         linestr = sr.ReadLine();
-                        pt3d = GetPoint3DFromString(linestr);
+                        if (linestr.Trim().Length > 0)
+                        {
+                            linenum++;
+                            pt3d = GetPoint3DFromString(linestr);
+
+                            //add point to vp_raw Point collecton
+                            m_pointsVisual.Points.Add(pt3d);
+                        }
                     }
                     catch (Exception ex)
                     {
                         Debug.Print("GetVector3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
                         errnum++;
                     }
-                    linenum++;
+                    //linenum++;
 
-                    //add point to vp_raw Point collecton
-                    m_pointsVisual.Points.Add(pt3d);
+                    ////add point to vp_raw Point collecton
+                    //m_pointsVisual.Points.Add(pt3d);
                 }
 
                 //Step2: Refresh vp_raw viewport
