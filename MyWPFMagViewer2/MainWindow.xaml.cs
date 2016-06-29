@@ -353,7 +353,7 @@ namespace MyWPFMagViewer2
             tbOctavePath.Background = (bOctaveExeFileExists) ? Brushes.LightGreen : Brushes.LightPink;
 
             //text view stats labels
-            tbox_RawMagData.Text = tbox_RawMagData.Text.Trim();
+            //tbox_RawMagData.Text = tbox_RawMagData.Text.Trim();
             lbl_NumRtbLines.Content = (tbox_RawMagData.Text.Length > 0) ? tbox_RawMagData.LineCount.ToString() : "0";
 
             //raw view stats labels
