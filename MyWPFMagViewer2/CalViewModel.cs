@@ -53,11 +53,11 @@ namespace MyWPFMagViewer2
 
         public HelixViewport3D view3d { get; set; }
         public MainWindow main_window { get; set; }
-        public Model3D Model { get; set; }
+        public Model3D ViewportGeometryModel { get; set; }
         private const int POINTSIZE = 6; //display size for magnetometer points
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MainViewModel"/> class.
+        /// Initializes a new instance of the CalViewModel class.
         /// </summary>
         public CalViewModel(HelixViewport3D view, MainWindow main)
         {
@@ -113,14 +113,14 @@ namespace MyWPFMagViewer2
             modelGroup.Children.Add(t_yz.Model);
 
             // Set the property, which will be bound to the Content property of the ModelVisual3D (see MainWindow.xaml)
-            this.Model = modelGroup;
+            ViewportGeometryModel = modelGroup;
         }
 
         /// <summary>
         /// Gets or sets the model.
         /// </summary>
         /// <value>The model.</value>
-        //public Model3D Model { get; set; }
+        //public Model3D ViewportGeometryModel { get; set; }
 
         public Point3DCollection GeneratePoints(int n, double time)
         {

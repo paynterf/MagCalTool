@@ -49,7 +49,7 @@ namespace MyWPFMagViewer2
         {
             ptob = PathToOctaveBinaries;
             cw = CreateWindow;
-            this.OctaveEchoString = Guid.NewGuid().ToString();
+            OctaveEchoString = Guid.NewGuid().ToString();
             OctaveProcess = new Process();
             ProcessStartInfo pi = new ProcessStartInfo();
             //if (PathToOctaveBinaries[PathToOctaveBinaries.Length - 1] != '\\')

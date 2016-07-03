@@ -20,14 +20,14 @@
             <h:SunLight/>
 
             <!-- The content of this visual is defined in RawViewModel.cs -->
-            <ModelVisual3D Content="{Binding Model}"/>
+            <ModelVisual3D Content="{Binding ViewportGeometryModel}"/>
 
             <!-- You can also add elements here in the xaml -->
             <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>
         </h:HelixViewport3D>
 
         <!--Calibrated viewport-->
-        <h:HelixViewport3D x:Name="vp_cal" Margin="560,290,32,130" MouseDown="vp_cal_MouseDown" CoordinateSystemHorizontalPosition="Center" 
+        <h:HelixViewport3D x:Name="vp_cal" Margin="560,290,32,130" CoordinateSystemHorizontalPosition="Center" 
                 CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" 
                 Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB">
 
@@ -36,7 +36,7 @@
             <h:SunLight/>
 
             <!-- The content of this visual is defined in CalViewModel.cs -->
-            <ModelVisual3D Content="{Binding Model}"/>
+            <ModelVisual3D Content="{Binding ViewportGeometryModel}"/>
 
             <!-- You can also add elements here in the xaml -->
             <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>

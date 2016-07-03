@@ -84,7 +84,7 @@ namespace MyWPFMagViewer2
 
         public HelixViewport3D view3d { get; set; }
         public MainWindow main_window { get; set; }
-        public System.Windows.Media.Media3D.Model3D Model { get; set; }
+        public System.Windows.Media.Media3D.Model3D ViewportGeometryModel { get; set; }
 
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace MyWPFMagViewer2
             modelGroup.Children.Add(t_yz.Model);
 
             // Set the property, which will be bound to the Content property of the ModelVisual3D (see MainWindow.xaml)
-            this.Model = modelGroup;
+            ViewportGeometryModel = modelGroup;
         }
 
         private Point3DCollection GeneratePoints(int n, double time)
