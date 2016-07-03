@@ -122,6 +122,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CalViewModel.cs" />
+    <Compile Include="RawViewModel.cs" />
     <Compile Include="MyEllpsoidVisual.cs" />
     <Compile Include="WaitCursor.cs" />
     <Page Include="MainWindow.xaml">

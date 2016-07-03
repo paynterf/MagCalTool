@@ -5,7 +5,6 @@ using System.Windows.Media;
 using HelixToolkit.Wpf;
 using System.Windows.Media.Media3D;
 using System.Diagnostics;
-using System.Text;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -16,9 +15,6 @@ using System.Windows.Forms;
 //05/31/16 experiment
 using HelixToolkit.Wpf.SharpDX;
 using SharpDX;
-using Color = SharpDX.Color;
-using HitTestResult = HelixToolkit.Wpf.SharpDX.HitTestResult;
-using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace MyWPFMagViewer2
@@ -28,13 +24,13 @@ namespace MyWPFMagViewer2
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int m_numberOfPoints;
-        private PointsVisual3D m_pointsVisual; //3D point cloud for magnetometer points
-        private PointsVisual3D selPointsVisual;//contains selected points from m_pointsVisual
-        private Point3DCollection m_points;//backing store for NumberOfPoints property
+        //private int m_numberOfPoints;
+        //private PointsVisual3D m_pointsVisual; //3D point cloud for magnetometer points
+        //private PointsVisual3D selPointsVisual;//contains selected points from m_pointsVisual
+        //private Point3DCollection m_points;//backing store for NumberOfPoints property
         private const int POINTSIZE = 6; //display size for magnetometer points
         private List<int> m_selidxlist = new List<int>();//contains indices into mag points collection for selected points
-        private PointsVisual3D m_CalpointsVisual; //3D point cloud for calibrated magnetometer points
+        //private PointsVisual3D m_CalpointsVisual; //3D point cloud for calibrated magnetometer points
 
         //06/07/16 copied in from MagManager2
         CommPortManager commMgr = new CommPortManager();
@@ -53,91 +49,94 @@ namespace MyWPFMagViewer2
 
         public bool bStringAvail = false;
         public bool bPtArrayUpdated = false;
-        private bool bShowRaw = true;
-        private bool bShowComp = false;
+        //private bool bShowRaw = true;
+        //private bool bShowComp = false;
         //private bool bShowRefCircles = false;
         private bool bCommPortOpen = false;
         private const int MIN_COMP_POINTS = 100;
+        private RawViewModel rawmodel;
+        private CalViewModel calmodel;
 
+        //public int NumberOfPoints
+        //{
+        //    get
+        //    {
+        //        return this.m_numberOfPoints;
+        //    }
 
-        public int NumberOfPoints
-        {
-            get
-            {
-                return this.m_numberOfPoints;
-            }
+        //    set
+        //    {
+        //        m_numberOfPoints = value;
+        //    }
+        //}
 
-            set
-            {
-                m_numberOfPoints = value;
-            }
-        }
+        //public Point3DCollection Points
+        //{
+        //    get
+        //    {
+        //        return m_points;
+        //    }
 
-        public Point3DCollection Points
-        {
-            get
-            {
-                return m_points;
-            }
-
-            set
-            {
-                m_points = value;
-            }
-        }
+        //    set
+        //    {
+        //        m_points = value;
+        //    }
+        //}
 
         public MainWindow()
         {
             InitializeComponent();
-            NumberOfPoints = 100;
-            Points = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
+            //this.DataContext = new RawViewModel(); 
+            rawmodel = new RawViewModel(vp_raw, this);
+            calmodel = new CalViewModel(vp_cal, this);
+            vp_raw.DataContext = rawmodel; //this ties RawViewModel.cs to vp_raw
+            vp_cal.DataContext = calmodel; //this ties CalViewModel.cs to vp_cal
+            //NumberOfPoints = 100;
+            //Points = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
 
             //06/08/16 experiment to populate textblock control
             tbox_RawMagData.Text = string.Empty;
             int linecount = 0;
-            foreach (Point3D pt in Points)
+            foreach (Point3D pt in rawmodel.Points)
             {
                 linecount++;
                 tbox_RawMagData.Text += pt.ToString() + Environment.NewLine;
             }
             lbl_NumRtbLines.Content = linecount.ToString();
 
-            m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
-            m_pointsVisual.Points = Points;
-            m_pointsVisual.SetName("magpoints");
-            vp_raw.Children.Add(m_pointsVisual);
+            //m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
+            //m_pointsVisual.Points = Points;
+            //m_pointsVisual.SetName("magpoints");
+            //vp_raw.Children.Add(m_pointsVisual);
 
             //selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 2 * POINTSIZE };
-            selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 1.5 * POINTSIZE };
-            selPointsVisual.SetName("selpoints");
-            vp_raw.Children.Add(selPointsVisual);
+            //selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 1.5 * POINTSIZE };
+            //selPointsVisual.SetName("selpoints");
+            //vp_raw.Children.Add(selPointsVisual);
 
-            //06/07/16 experiment with 2nd viewport window
-            Point3DCollection CalPoints = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
-            m_CalpointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
-            vp_cal.Title = "Calibrated Magnetometer Points";
-            m_CalpointsVisual.Points = CalPoints;
-            m_CalpointsVisual.SetName("calpoints");
-            vp_cal.Children.Add(m_CalpointsVisual);
+            ////06/07/16 experiment with 2nd viewport window
+            //Point3DCollection CalPoints = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
+            //m_CalpointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
+            //vp_cal.Title = "Calibrated Magnetometer Points";
+            //m_CalpointsVisual.Points = CalPoints;
+            //m_CalpointsVisual.SetName("calpoints");
+            //vp_cal.Children.Add(m_CalpointsVisual);
 
-            //try adding an ellipse to view
+            ////try adding an ellipse to view
             //EllipsoidVisual3D ell1 = new EllipsoidVisual3D();
-            //MyEllpsoidVisual ell1 = new MyEllpsoidVisual();
+            ////MyEllpsoidVisual ell1 = new MyEllpsoidVisual();
             //SolidColorBrush perimeterbrush = new SolidColorBrush(Colors.Red);
             //System.Windows.Media.Media3D.Material mat = MaterialHelper.CreateMaterial(new SolidColorBrush(Colors.Red));
-            //ell1.Material = mat;
-            //ell1.BackMaterial = mat;
-            //ell1.Fill = perimeterbrush;
             //ell1.Center = new Point3D(0, 0, 0);
-            //ell1.RadiusX = 1;
+            //ell1.RadiusX = 0;
             //ell1.RadiusZ = 1;
             //ell1.RadiusY = 1;
-            //ell1.Model.BackMaterial = mat;
-            //ell1.Model.Material = mat;
-            //ell1.Fill = new SolidColorBrush(Colors.White);
+            //ell1.Fill = new SolidColorBrush(Colors.Red);
+            //vp_raw.Children.Add(ell1);
+            //vp_raw.UpdateLayout();
 
-            //vp_cal.Children.Add(ell1);
-            //vp_cal.UpdateLayout();
+            //try adding reference circles using TubeVisual3D objects
+
 
             //06/08/16 copied from frmMagManager.cs
             //Load file/folder boxes with default contents from config file
@@ -147,7 +146,8 @@ namespace MyWPFMagViewer2
         }
 
         //this function is just to generate a static set of test points
-        public static IEnumerable<Point3D> GeneratePoints(int n, double time)
+        //public static IEnumerable<Point3D> GeneratePoints(int n, double time)
+        private static IEnumerable<Point3D> GeneratePoints(int n, double time)
         {
             //Purpose: Generate animated array of points
             //Inputs:
@@ -172,128 +172,133 @@ namespace MyWPFMagViewer2
 
         private void vp_raw_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            System.Windows.Point mousept = e.GetPosition(vp_raw);
-            Debug.Print("At top of MouseDown event, Mouse position " + mousept.ToString());
-
-            //code to print out current selected point list
-            if (selPointsVisual != null)
-            {
-                int selcount = selPointsVisual.Points.Count;
-                for (int i = 0; i < selcount; i++)
-                {
-                    Point3D selpt = selPointsVisual.Points[i];
-                    Debug.Print("selected pt at index " + i + " = ("
-                        + selpt.X.ToString("F2") + ", "
-                        + selpt.Y.ToString("F2") + ", "
-                        + selpt.Z.ToString("F2") + ")");
-                }
-            }
-            else
-            {
-                Debug.Print("No selected points exist");
-            }
-
-            //Step1:  Get the current transformation matrix
-            //get a reference to the visual element containing datapoints
-            int chldcount = vp_raw.Children.Count;
-            PointsVisual3D p3dvis = null; //temp object
-            for (int i = 0; i < vp_raw.Children.Count; i++)
-            {
-                Visual3D Vis = (Visual3D)vp_raw.Children[i];
-                string visnamestr = Vis.GetName();
-                Debug.Print("visual element [" + i + "]'s name is " + visnamestr);
-                if (visnamestr != null && visnamestr.Contains("magpoints"))
-                {
-                    p3dvis = (PointsVisual3D)Vis;
-                    break;
-                }
-            }
-
-            //use the temp object to get the transformation matrix for the parent viewport
-            Matrix3D m3D = p3dvis.GetViewportTransform();
-
-            //Debug.Print(m3D.ToString());
-            //Point3D xfrmpt = m3D.Transform(new Point3D(0,0,0));
-            //string ctrptstr = xfrmpt.X.ToString("F2") + ", "
-            //    + xfrmpt.Y.ToString("F2") + ", "
-            //    + xfrmpt.Z.ToString("F2");
-            //Debug.Print("(0,0,0) transforms to " + ctrptstr);
-
-            //Step2: transfer any currently selected points back to main points list unless SHIFT key is down
-            if ((Keyboard.Modifiers & ModifierKeys.Shift) != ModifierKeys.Shift)
-            {
-                if (selPointsVisual != null)
-                {
-                    int selcount = selPointsVisual.Points.Count;
-                    int magptcount = m_pointsVisual.Points.Count;
-                    Debug.Print("selcount = " + selcount + ", magptcount = " + magptcount);
-                    if (selcount > 0)
-                    {
-                        for (int i = 0; i < selcount; i++)
-                        {
-                            //get selected point 
-                            Point3D selpt = selPointsVisual.Points[i];
-                            string selptstr = selpt.X.ToString("F2") + ","
-                                            + selpt.Y.ToString("F2") + ","
-                                            + selpt.Z.ToString("F2");
-
-                            Debug.Print("Moving selected pt (" + selptstr + ") to pointsVisual.  Before add, pt count is "
-                                + m_pointsVisual.Points.Count);
-
-                            //add it to pointsVisual
-                            m_pointsVisual.Points.Add(selPointsVisual.Points[i]);
-                            int newcount = m_pointsVisual.Points.Count;
-
-                            //check that point got added properly
-                            Point3D newpt = m_pointsVisual.Points[newcount - 1];
-                            string newptstr = newpt.X.ToString("F2") + ","
-                                            + newpt.Y.ToString("F2") + ","
-                                            + newpt.Z.ToString("F2");
-
-                            Debug.Print("point (" + newptstr + ") added to pointsVsiual at index " + (newcount - 1)
-                                + ". Count now " + newcount);
-                        }
-                        selPointsVisual.Points.Clear();
-                    }
-                }
-            }
-
-            //Step3: copy pointsVisual.Points index of any selected points to m_selidxlist
-            m_selidxlist.Clear();
-            int ptidx = 0;
-            foreach (Point3D vispt in m_pointsVisual.Points)
-            {
-                Point3D xpt = m3D.Transform(vispt);
-                double distsq = (mousept.X - xpt.X) * (mousept.X - xpt.X) + (mousept.Y - xpt.Y) * (mousept.Y - xpt.Y);
-                double dist = Math.Sqrt(distsq);
-                if (dist < 5)
-                {
-                    m_selidxlist.Add(ptidx); //save the index of the point to be removed
-
-                    string visptstr = vispt.X.ToString("F2") + ","
-                        + vispt.Y.ToString("F2") + ","
-                        + vispt.Z.ToString("F2");
-
-                    string xfrmptstr = xpt.X.ToString("F2") + ", "
-                        + xpt.Y.ToString("F2") + ", "
-                        + xpt.Z.ToString("F2");
-                    Debug.Print("dist = " + dist.ToString("F2") + ": mousepoint " + mousept.ToString()
-                        + " matches with magpt[" + ptidx + "] ( " + visptstr + "), "
-                        + "which transforms to " + xfrmptstr);
-                }
-
-                ptidx++;
-            }
-
-            //move selected points from pointsVisual3D to selpointsVisual3D
-            int selidxcount = m_selidxlist.Count;
-            Debug.Print("Selected Index List Contains " + selidxcount + " items");
-
-            //06/12/16 moved all point move code to function so can call from mi_UseSelRadius_Checked()
-            MoveSelToSelPointsVisual();
-            vp_raw.UpdateLayout();//refresh the 'raw' view
-            UpdateControls();
+            rawmodel.Rawview_MouseDown(sender, e);
         }
+
+        //private void vp_raw_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        //{
+        //    System.Windows.Point mousept = e.GetPosition(vp_raw);
+        //    Debug.Print("At top of MouseDown event, Mouse position " + mousept.ToString());
+
+            //    //code to print out current selected point list
+            //    if (selPointsVisual != null)
+            //    {
+            //        int selcount = selPointsVisual.Points.Count;
+            //        for (int i = 0; i < selcount; i++)
+            //        {
+            //            Point3D selpt = selPointsVisual.Points[i];
+            //            Debug.Print("selected pt at index " + i + " = ("
+            //                + selpt.X.ToString("F2") + ", "
+            //                + selpt.Y.ToString("F2") + ", "
+            //                + selpt.Z.ToString("F2") + ")");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        Debug.Print("No selected points exist");
+            //    }
+
+            //    //Step1:  Get the current transformation matrix
+            //    //get a reference to the visual element containing datapoints
+            //    int chldcount = vp_raw.Children.Count;
+            //    PointsVisual3D p3dvis = null; //temp object
+            //    for (int i = 0; i < vp_raw.Children.Count; i++)
+            //    {
+            //        Visual3D Vis = (Visual3D)vp_raw.Children[i];
+            //        string visnamestr = Vis.GetName();
+            //        Debug.Print("visual element [" + i + "]'s name is " + visnamestr);
+            //        if (visnamestr != null && visnamestr.Contains("magpoints"))
+            //        {
+            //            p3dvis = (PointsVisual3D)Vis;
+            //            break;
+            //        }
+            //    }
+
+            //    //use the temp object to get the transformation matrix for the parent viewport
+            //    Matrix3D m3D = p3dvis.GetViewportTransform();
+
+            //    //Debug.Print(m3D.ToString());
+            //    //Point3D xfrmpt = m3D.Transform(new Point3D(0,0,0));
+            //    //string ctrptstr = xfrmpt.X.ToString("F2") + ", "
+            //    //    + xfrmpt.Y.ToString("F2") + ", "
+            //    //    + xfrmpt.Z.ToString("F2");
+            //    //Debug.Print("(0,0,0) transforms to " + ctrptstr);
+
+            //    //Step2: transfer any currently selected points back to main points list unless SHIFT key is down
+            //    if ((Keyboard.Modifiers & ModifierKeys.Shift) != ModifierKeys.Shift)
+            //    {
+            //        if (selPointsVisual != null)
+            //        {
+            //            int selcount = selPointsVisual.Points.Count;
+            //            int magptcount = m_pointsVisual.Points.Count;
+            //            Debug.Print("selcount = " + selcount + ", magptcount = " + magptcount);
+            //            if (selcount > 0)
+            //            {
+            //                for (int i = 0; i < selcount; i++)
+            //                {
+            //                    //get selected point 
+            //                    Point3D selpt = selPointsVisual.Points[i];
+            //                    string selptstr = selpt.X.ToString("F2") + ","
+            //                                    + selpt.Y.ToString("F2") + ","
+            //                                    + selpt.Z.ToString("F2");
+
+            //                    Debug.Print("Moving selected pt (" + selptstr + ") to pointsVisual.  Before add, pt count is "
+            //                        + m_pointsVisual.Points.Count);
+
+            //                    //add it to pointsVisual
+            //                    m_pointsVisual.Points.Add(selPointsVisual.Points[i]);
+            //                    int newcount = m_pointsVisual.Points.Count;
+
+            //                    //check that point got added properly
+            //                    Point3D newpt = m_pointsVisual.Points[newcount - 1];
+            //                    string newptstr = newpt.X.ToString("F2") + ","
+            //                                    + newpt.Y.ToString("F2") + ","
+            //                                    + newpt.Z.ToString("F2");
+
+            //                    Debug.Print("point (" + newptstr + ") added to pointsVsiual at index " + (newcount - 1)
+            //                        + ". Count now " + newcount);
+            //                }
+            //                selPointsVisual.Points.Clear();
+            //            }
+            //        }
+            //    }
+
+            //    //Step3: copy pointsVisual.Points index of any selected points to m_selidxlist
+            //    m_selidxlist.Clear();
+            //    int ptidx = 0;
+            //    foreach (Point3D vispt in m_pointsVisual.Points)
+            //    {
+            //        Point3D xpt = m3D.Transform(vispt);
+            //        double distsq = (mousept.X - xpt.X) * (mousept.X - xpt.X) + (mousept.Y - xpt.Y) * (mousept.Y - xpt.Y);
+            //        double dist = Math.Sqrt(distsq);
+            //        if (dist < 5)
+            //        {
+            //            m_selidxlist.Add(ptidx); //save the index of the point to be removed
+
+            //            string visptstr = vispt.X.ToString("F2") + ","
+            //                + vispt.Y.ToString("F2") + ","
+            //                + vispt.Z.ToString("F2");
+
+            //            string xfrmptstr = xpt.X.ToString("F2") + ", "
+            //                + xpt.Y.ToString("F2") + ", "
+            //                + xpt.Z.ToString("F2");
+            //            Debug.Print("dist = " + dist.ToString("F2") + ": mousepoint " + mousept.ToString()
+            //                + " matches with magpt[" + ptidx + "] ( " + visptstr + "), "
+            //                + "which transforms to " + xfrmptstr);
+            //        }
+
+            //        ptidx++;
+            //    }
+
+            //    //move selected points from pointsVisual3D to selpointsVisual3D
+            //    int selidxcount = m_selidxlist.Count;
+            //    Debug.Print("Selected Index List Contains " + selidxcount + " items");
+
+            //    //06/12/16 moved all point move code to function so can call from mi_UseSelRadius_Checked()
+            //    MoveSelToSelPointsVisual();
+            //    vp_raw.UpdateLayout();//refresh the 'raw' view
+            //    UpdateControls();
+            //}
 
         private void vp_cal_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -333,7 +338,8 @@ namespace MyWPFMagViewer2
             tbox_RawMagData.Text = tbox_RawMagData.Text + Environment.NewLine + portstr;
         }
 
-        private void UpdateControls()
+        //private void UpdateControls()
+        public void UpdateControls()
         {
             //serial commms buttons
             btn_CommPortOpen.IsEnabled = !bCommPortOpen;
@@ -357,13 +363,14 @@ namespace MyWPFMagViewer2
             lbl_NumRtbLines.Content = (tbox_RawMagData.Text.Length > 0) ? tbox_RawMagData.LineCount.ToString() : "0";
 
             //raw view stats labels
-            lbl_AvgRadius.Content = GetRawAvgRadius().ToString("F2");
-            lbl_NumPoints.Content = m_pointsVisual.Points.Count;
-            lbl_SelPoints.Content = selPointsVisual.Points.Count;
+            //lbl_AvgRadius.Content = GetRawAvgRadius().ToString("F2");
+            lbl_AvgRadius.Content = rawmodel.GetRawAvgRadius().ToString("F2");
+            lbl_NumPoints.Content = rawmodel.RawPointCount;
+            lbl_SelPoints.Content = rawmodel.SelPointCount;
 
             //Compute button
-            btn_Compute.IsEnabled = m_pointsVisual.Points.Count >= MIN_COMP_POINTS
-                && bOctaveFunctionFileExists && bOctaveScriptFileExists;
+            //btn_Compute.IsEnabled = m_pointsVisual.Points.Count >= MIN_COMP_POINTS
+            //    && bOctaveFunctionFileExists && bOctaveScriptFileExists;
 
             //Compensation value save button added 06 / 29 / 16
             string compvalstr = lbl_U11.Content.ToString();
@@ -390,7 +397,7 @@ namespace MyWPFMagViewer2
                     pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
                 throw;
@@ -440,7 +447,7 @@ namespace MyWPFMagViewer2
                         break;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
                 throw;
@@ -642,8 +649,10 @@ namespace MyWPFMagViewer2
             //  Step2: Refresh vp_raw viewport
 
             //Step1: clear vp_raw contents
-            selPointsVisual.Points.Clear();
-            m_pointsVisual.Points.Clear();
+            //selPointsVisual.Points.Clear();
+            //m_pointsVisual.Points.Clear();
+            rawmodel.selpointsVisual.Points.Clear();
+            rawmodel.rawpointsVisual.Points.Clear();
             vp_raw.UpdateLayout();
 
             //Step2: Add all points to raw 3D view
@@ -669,7 +678,8 @@ namespace MyWPFMagViewer2
                             pt3d = GetPoint3DFromString(linestr);
 
                             //add point to vp_raw Point collecton
-                            m_pointsVisual.Points.Add(pt3d);
+                            //m_pointsVisual.Points.Add(pt3d);
+                            rawmodel.rawpointsVisual.Points.Add(pt3d);
                         }
                     }
                     catch (Exception ex)
@@ -706,7 +716,8 @@ namespace MyWPFMagViewer2
             }
             //clear the calibrated display so will be easier to tell when refreshed
             //has to be above WaitCursor() call, as DoEvents() resets cursor to default
-            m_CalpointsVisual.Points.Clear();
+            //m_CalpointsVisual.Points.Clear();
+            calmodel.calpointsVisual.Points.Clear();
             vp_cal.UpdateLayout();
             DoEvents();
 
@@ -733,7 +744,8 @@ namespace MyWPFMagViewer2
 
                     //save raw points to temp file
                     StreamWriter sw = new StreamWriter(fullPathToRawDatafile);
-                    foreach (Point3D pt3d in m_pointsVisual.Points)
+                    //foreach (Point3D pt3d in m_pointsVisual.Points)
+                    foreach (Point3D pt3d in rawmodel.rawpointsVisual.Points)
                     {
                         sw.WriteLine(pt3d.ToString());
                     }
@@ -1014,14 +1026,15 @@ namespace MyWPFMagViewer2
 
         private void UpdateCalViewport()
         {
-            m_CalpointsVisual.Points.Clear();
+            calmodel.calpointsVisual.Points.Clear();
             Vector3D pt3D = new Vector3D(0, 0, 0);
             for (int i = 0; i < Caldata.Length; i++)
             {
                 pt3D.X = Caldata[i][0];
                 pt3D.Y = Caldata[i][1];
                 pt3D.Z = Caldata[i][2];
-                m_CalpointsVisual.Points.Add(new Point3D(pt3D.X, pt3D.Y, pt3D.Z));
+                //m_CalpointsVisual.Points.Add(new Point3D(pt3D.X, pt3D.Y, pt3D.Z));
+                calmodel.calpointsVisual.Points.Add(new Point3D(pt3D.X, pt3D.Y, pt3D.Z));
             }
 
             //draw unit radius reference circles if selected
@@ -1112,68 +1125,69 @@ namespace MyWPFMagViewer2
             //Plan:  All selected points should be in selPointsVisual.Points collection, so can just clear
             //      this collection and update 
 
-            selPointsVisual.Points.Clear();
+            //selPointsVisual.Points.Clear();
+            rawmodel.selpointsVisual.Points.Clear();
             UpdateControls();
         }
 
-        private double GetRawAvgRadius()
-        {
-            //Purpose: Compute the average radius of all non-selected raw magetometer points
-            //Plan:
-            //Step1: Iterate through all points in m_pointsVisual, computing average radius
-            double avgradius = 0;
-            double radius = 0;
-            int numpts = 0;
-            foreach (Point3D pt3d in m_pointsVisual.Points)
-            {
-                numpts++;
-                Vector3 V3 = pt3d.ToVector3();
-                radius = V3.Length();
-                avgradius = ((double)(numpts - 1) / numpts) * avgradius + (radius / numpts);//running average
-            }
-            return avgradius;
-        }
+        //private double GetRawAvgRadius()
+        //{
+        //    //Purpose: Compute the average radius of all non-selected raw magetometer points
+        //    //Plan:
+        //    //Step1: Iterate through all points in m_pointsVisual, computing average radius
+        //    double avgradius = 0;
+        //    double radius = 0;
+        //    int numpts = 0;
+        //    foreach (Point3D pt3d in m_pointsVisual.Points)
+        //    {
+        //        numpts++;
+        //        Vector3 V3 = pt3d.ToVector3();
+        //        radius = V3.Length();
+        //        avgradius = ((double)(numpts - 1) / numpts) * avgradius + (radius / numpts);//running average
+        //    }
+        //    return avgradius;
+        //}
 
-        private void MoveSelToSelPointsVisual()
-        {
-            int selidxcount = m_selidxlist.Count;
-            if (selidxcount > 0)
-            {
-                int newcount = 1;
-                //06/06/16 new try at moving selected points from m_pointsVisual to selPointsVisual
-                for (int selidx = selidxcount - 1; selidx >= 0; selidx--)//have to work from top down to avoid crashes
-                {
-                    //retrieve selected point from pointsVisual collection
-                    int visptidx = m_selidxlist[selidx]; //this is the index into pointsVisual.Points collection
-                    Point3D selvispt = new Point3D();
-                    selvispt.X = m_pointsVisual.Points[visptidx].X;
-                    selvispt.Y = m_pointsVisual.Points[visptidx].Y;
-                    selvispt.Z = m_pointsVisual.Points[visptidx].Z;
-                    string selvisptstr = selvispt.X.ToString("F2") + ","
-                                    + selvispt.Y.ToString("F2") + ","
-                                    + selvispt.Z.ToString("F2");
-                    Debug.Print("selected pt (" + selvisptstr + ") added to selPointsVisual Points Collection. Count now "
-                        + newcount);
+        //private void MoveSelToSelPointsVisual()
+        //{
+        //    int selidxcount = m_selidxlist.Count;
+        //    if (selidxcount > 0)
+        //    {
+        //        int newcount = 1;
+        //        //06/06/16 new try at moving selected points from m_pointsVisual to selPointsVisual
+        //        for (int selidx = selidxcount - 1; selidx >= 0; selidx--)//have to work from top down to avoid crashes
+        //        {
+        //            //retrieve selected point from pointsVisual collection
+        //            int visptidx = m_selidxlist[selidx]; //this is the index into pointsVisual.Points collection
+        //            Point3D selvispt = new Point3D();
+        //            selvispt.X = m_pointsVisual.Points[visptidx].X;
+        //            selvispt.Y = m_pointsVisual.Points[visptidx].Y;
+        //            selvispt.Z = m_pointsVisual.Points[visptidx].Z;
+        //            string selvisptstr = selvispt.X.ToString("F2") + ","
+        //                            + selvispt.Y.ToString("F2") + ","
+        //                            + selvispt.Z.ToString("F2");
+        //            Debug.Print("selected pt (" + selvisptstr + ") added to selPointsVisual Points Collection. Count now "
+        //                + newcount);
 
-                    //add this point to selPointsVisual
-                    selPointsVisual.Points.Add(selvispt);
+        //            //add this point to selPointsVisual
+        //            selPointsVisual.Points.Add(selvispt);
 
-                    //testing - print out added point
-                    int addedcount = selPointsVisual.Points.Count;
-                    Point3D addedpt = new Point3D();
-                    addedpt = selPointsVisual.Points[addedcount - 1];
-                    string addedptstr = addedpt.X.ToString("F2") + ","
-                                    + addedpt.Y.ToString("F2") + ","
-                                    + addedpt.Z.ToString("F2");
-                    Debug.Print("added pt (" + addedptstr + ") added to selPointsVisual. Count now "
-                        + addedcount);
+        //            //testing - print out added point
+        //            int addedcount = selPointsVisual.Points.Count;
+        //            Point3D addedpt = new Point3D();
+        //            addedpt = selPointsVisual.Points[addedcount - 1];
+        //            string addedptstr = addedpt.X.ToString("F2") + ","
+        //                            + addedpt.Y.ToString("F2") + ","
+        //                            + addedpt.Z.ToString("F2");
+        //            Debug.Print("added pt (" + addedptstr + ") added to selPointsVisual. Count now "
+        //                + addedcount);
 
-                    //remove this point from m_pointsVisual collection
-                    Debug.Print("removing point at m_pointsVisual[" + m_selidxlist[selidx] + "]");
-                    m_pointsVisual.Points.RemoveAt(m_selidxlist[selidx]);
-                }
-            }
-        }
+        //            //remove this point from m_pointsVisual collection
+        //            Debug.Print("removing point at m_pointsVisual[" + m_selidxlist[selidx] + "]");
+        //            m_pointsVisual.Points.RemoveAt(m_selidxlist[selidx]);
+        //        }
+        //    }
+        //}
 
         private void btn_SaveRawPtsToFile_Click(object sender, RoutedEventArgs e)
         {
@@ -1206,7 +1220,8 @@ namespace MyWPFMagViewer2
                 try
                 {
                     StreamWriter sw = new StreamWriter(savefile);
-                    foreach (Point3D p3d in m_pointsVisual.Points)
+                    //foreach (Point3D p3d in m_pointsVisual.Points)
+                    foreach (Point3D p3d in rawmodel.rawpointsVisual.Points)
                     {
                         sw.WriteLine(p3d.ToString());
                         ptssaved++;
@@ -1226,47 +1241,49 @@ namespace MyWPFMagViewer2
 
         private void btn_SelectBeyondRadius_Click_1(object sender, RoutedEventArgs e)
         {
-            //Purpose: Select all points beyond the radius specified in tb_SelRadius
-            //Plan:
-            //  Step1: Clear list of selected indices, and all points from selPointsVisual.Points list
-            //  Step2: Iterate through all m_pointsVisual points & copy index of any qualifying points to m_selidxlist
-            //  Step3: For each index in m_selidxlist, move assoc pt from m_pointsVisaul to selPointsVisual
-            //  Step4: Update 'selected' count label
+            rawmodel.SelectBeyondRadius(tb_SelRadius.Text);
 
-            try
-            {
-                double selradius = Convert.ToDouble(tb_SelRadius.Text);//this could fail
+            ////Purpose: Select all points beyond the radius specified in tb_SelRadius
+            ////Plan:
+            ////  Step1: Clear list of selected indices, and all points from selPointsVisual.Points list
+            ////  Step2: Iterate through all m_pointsVisual points & copy index of any qualifying points to m_selidxlist
+            ////  Step3: For each index in m_selidxlist, move assoc pt from m_pointsVisaul to selPointsVisual
+            ////  Step4: Update 'selected' count label
 
-                //Step1: Clear list of selected indices, and all points from selPointsVisual.Points list
-                m_selidxlist.Clear();
-                selPointsVisual.Points.Clear(); //added 06/21/16
+            //try
+            //{
+            //    double selradius = Convert.ToDouble(tb_SelRadius.Text);//this could fail
 
-                //Step2: Iterate through all m_pointsVisual points & copy index of any qualifying points to m_selidxlist
-                int ptidx = 0;
-                foreach (Point3D vispt in m_pointsVisual.Points)
-                {
-                    double radius = vispt.DistanceTo(new Point3D(0, 0, 0));
-                    if (radius > selradius)
-                    {
-                        m_selidxlist.Add(ptidx); //save the index of the point to be moved
-                    }
+            //    //Step1: Clear list of selected indices, and all points from selPointsVisual.Points list
+            //    m_selidxlist.Clear();
+            //    selPointsVisual.Points.Clear(); //added 06/21/16
 
-                    ptidx++;
-                }
+            //    //Step2: Iterate through all m_pointsVisual points & copy index of any qualifying points to m_selidxlist
+            //    int ptidx = 0;
+            //    foreach (Point3D vispt in m_pointsVisual.Points)
+            //    {
+            //        double radius = vispt.DistanceTo(new Point3D(0, 0, 0));
+            //        if (radius > selradius)
+            //        {
+            //            m_selidxlist.Add(ptidx); //save the index of the point to be moved
+            //        }
 
-                //Step3: For each index in m_selidxlist, move assoc pt from m_pointsVisaul to selPointsVisual
-                int selidxcount = m_selidxlist.Count;
-                Debug.Print("Selected Index List Contains " + selidxcount + " items");
-                MoveSelToSelPointsVisual();
+            //        ptidx++;
+            //    }
 
-                //  Step4: Update view & 'selected' count label
-                vp_raw.UpdateLayout();
-                UpdateControls();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            //    //Step3: For each index in m_selidxlist, move assoc pt from m_pointsVisaul to selPointsVisual
+            //    int selidxcount = m_selidxlist.Count;
+            //    Debug.Print("Selected Index List Contains " + selidxcount + " items");
+            //    MoveSelToSelPointsVisual();
+
+            //    //  Step4: Update view & 'selected' count label
+            //    vp_raw.UpdateLayout();
+            //    UpdateControls();
+            //}
+            //catch (Exception)
+            //{
+            //    throw;
+            //}
         }
 
         //this is called from CommPortMgr.cs
@@ -1286,7 +1303,8 @@ namespace MyWPFMagViewer2
                     Point3D pt3d = new Point3D();
                     pt3d = GetPoint3DFromString(linestr);
                     //Debug.Print("GetPoint3DFromString(" + linestr + ") returned " + pt3d.ToString());
-                    m_pointsVisual.Points.Add(pt3d);
+                    //m_pointsVisual.Points.Add(pt3d);
+                    rawmodel.rawpointsVisual.Points.Add(pt3d);
                     vp_raw.UpdateLayout();
                 }
                 catch (Exception)
@@ -1296,7 +1314,7 @@ namespace MyWPFMagViewer2
 
                 UpdateControls();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }

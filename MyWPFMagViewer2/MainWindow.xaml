@@ -6,14 +6,44 @@
         xmlns:local="clr-namespace:MyWPFMagViewer2"
         xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="EM Workbench Magnetometer Calibration Utility Version 1.1.2" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
+        Title="EM Workbench Magnetometer Calibration Utility Version 2.0.0" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
+    <!--Main window grid-->
     <Grid>
+        
+        <!--Raw viewport-->
         <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" 
                            CoordinateSystemVerticalPosition="Center" Orthographic="True" 
-                           Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB" ShowCameraTarget="False" ShowCoordinateSystem="True"/>
+                           Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" 
+                           Background="#FFFDFBFB" ShowCameraTarget="False" ShowCoordinateSystem="True">
+
+            <!-- Remember to add light to the scene -->
+            <h:SunLight/>
+
+            <!-- The content of this visual is defined in RawViewModel.cs -->
+            <ModelVisual3D Content="{Binding Model}"/>
+
+            <!-- You can also add elements here in the xaml -->
+            <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>
+        </h:HelixViewport3D>
+
+        <!--Calibrated viewport-->
         <h:HelixViewport3D x:Name="vp_cal" Margin="560,290,32,130" MouseDown="vp_cal_MouseDown" CoordinateSystemHorizontalPosition="Center" 
                 CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" 
-                Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB"/>
+                Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB">
+
+
+            <!-- Remember to add light to the scene -->
+            <h:SunLight/>
+
+            <!-- The content of this visual is defined in CalViewModel.cs -->
+            <ModelVisual3D Content="{Binding Model}"/>
+
+            <!-- You can also add elements here in the xaml -->
+            <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>
+        </h:HelixViewport3D>
+
+
+        <!--All other controls-->
         <Label x:Name="label" Content="Octave Executable Location" HorizontalAlignment="Left" Margin="45,9,0,0" VerticalAlignment="Top" Width="160"/>
         <TextBox x:Name="tbOctavePath" HorizontalAlignment="Left" Height="24" Margin="235,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="585"/>
         <Button x:Name="btn_BrowseOctave" Content="Browse" HorizontalAlignment="Left" Margin="840,11,0,0" VerticalAlignment="Top" Width="75" Click="btn_BrowseOctave_Click"/>
