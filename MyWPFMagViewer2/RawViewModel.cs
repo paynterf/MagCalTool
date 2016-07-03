@@ -96,15 +96,14 @@ namespace MyWPFMagViewer2
             main_window = main;
 
             //generated points are only used on startup so there is something to see in the viewport
-            //NumberOfPoints = 100;
-            //Points = new Point3DCollection(GeneratePoints(NumberOfPoints, 10.3));
             Points = new Point3DCollection(GeneratePoints(100, 10.3));
 
             // Create a model group - this contains all the 3D models to be displayed
             var modelGroup = new Model3DGroup();
 
-            //m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
-            m_pointsVisual = new PointsVisual3D { Color = Colors.Green, Size = POINTSIZE };
+            //'raw' and 'selected' points aren't part of model group - they are added directly to the view
+            m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
+            //m_pointsVisual = new PointsVisual3D { Color = Colors.Green, Size = POINTSIZE };
             m_pointsVisual.Points = Points;
             m_pointsVisual.SetName("magpoints");
             view3d.Children.Add(m_pointsVisual);
@@ -113,77 +112,12 @@ namespace MyWPFMagViewer2
             selPointsVisual.SetName("selpoints");
             view3d.Children.Add(selPointsVisual);
 
-            //// Create a mesh builder and add a box to it
-            //var meshBuilder = new MeshBuilder(false, false);
-            //meshBuilder.AddBox(new Point3D(0, 0, 1), 1, 2, 0.5);
-            //meshBuilder.AddBox(new Rect3D(0, 0, 1.2, 0.5, 1, 0.4));
-
-            //// Create a mesh from the builder (and freeze it)
-            //var mesh = meshBuilder.ToMesh(true);
-
-            // Create some materials
+            // Create materials for reference circles (TubeVisual3D objects)
             var greenMaterial = MaterialHelper.CreateMaterial(Colors.Green);
             var redMaterial = MaterialHelper.CreateMaterial(Colors.Red);
             var blueMaterial = MaterialHelper.CreateMaterial(Colors.Blue);
             var insideMaterial = MaterialHelper.CreateMaterial(Colors.Yellow);
 
-            // Add 3 models to the group (using the same mesh, that's why we had to freeze it)
-            //modelGroup.Children.Add(new GeometryModel3D { Geometry = mesh, Material = greenMaterial, BackMaterial = insideMaterial });
-            //modelGroup.Children.Add(new GeometryModel3D { Geometry = mesh, Transform = new TranslateTransform3D(-2, 0, 0), Material = redMaterial, BackMaterial = insideMaterial });
-            //modelGroup.Children.Add(new GeometryModel3D { Geometry = mesh, Transform = new TranslateTransform3D(2, 0, 0), Material = blueMaterial, BackMaterial = insideMaterial });
-
-            ////add Y-Z plane ellipsoid
-            //EllipsoidVisual3D YZ = new EllipsoidVisual3D();
-            //YZ.RadiusX = 0; //Y-Z plane
-            //YZ.Model.Material = redMaterial;
-            //YZ.Model.BackMaterial = YZ.Model.Material;
-            //modelGroup.Children.Add(YZ.Model);
-
-            ////add X-Z ellipsoid
-            //EllipsoidVisual3D XZ = new EllipsoidVisual3D();
-            //XZ.RadiusY = 0; //X-Z plane
-            //XZ.Model.Material = greenMaterial;
-            //XZ.Model.BackMaterial = XZ.Model.Material;
-            //modelGroup.Children.Add(XZ.Model);
-
-            ////add X-Y ellipsoid
-            //EllipsoidVisual3D XY = new EllipsoidVisual3D();
-            //XY.RadiusZ = 0; //X-Z plane
-            //XY.Model.Material = blueMaterial;
-            //XY.Model.BackMaterial = XY.Model.Material;
-            //modelGroup.Children.Add(XY.Model);
-
-            //add circular pipe (tube)
-            //TubeVisual3D tubeXY = new TubeVisual3D();
-            ////tubeXY.Material = redMaterial;
-            ////tubeXY.Diameter = 2;
-            //modelGroup.Children.Add(tubeXY.Model);
-            //TubeVisual3D t = new TubeVisual3D();
-            //t.Fill = System.Windows.Media.Brushes.Black;
-
-            //Point3DCollection p3dc = new Point3DCollection();
-            //List<double> diamlist = new List<double>();
-            //double dx = 15;
-            //double dy = 15;
-            //double dz = 15;
-            //double dd = 10;
-            //int n = 36;
-            //double d_theta = Math.PI * 2 / n;
-            //double radius = 10;
-            //for (int i = 0; i <= n; i++)
-            //{
-            //    //p3dc.Add(new Point3D(0 + Math.Pow((double)i / n, 3) * dx, 0 + ((double)i / n) * dy, 0 + ((double)i / n) * dz));
-            //    p3dc.Add(new Point3D(Math.Cos(i*d_theta)*radius, Math.Sin(i*d_theta)*radius, 0));
-            //    Debug.Print("point " + i + ": " + p3dc[i].ToString());
-            //    //diamlist.Add(3.5 + ((double)i / n) * dd);
-            //}
-            ////t.Diameters = new DoubleCollection(diamlist);
-            //t.Diameter = 0.01*radius; //1% factor emperically determined
-            //t.Material = redMaterial;
-            //t.Path = p3dc;
-            //modelGroup.Children.Add(t.Model);
-
-            //Point3DCollection p3dc = GeneratePoints(1000, 1000);
 
             //reference circles using TubeVisual3D object
             double thicknessfactor = 0.05; //established empirically
@@ -233,23 +167,6 @@ namespace MyWPFMagViewer2
             }
             return pc;
         }
-
-        //public static IEnumerable<Point3D> GeneratePoints(int n, double time)
-        //{
-        //    const double R = 2;
-        //    const double Q = 0.5;
-        //    for (int i = 0; i < n; i++)
-        //    {
-        //        double t = Math.PI * 2 * i / (n - 1);
-        //        double u = (t * 24) + (time * 5);
-        //        var pt = new Point3D(Math.Cos(t) * (R + (Q * Math.Cos(u))), Math.Sin(t) * (R + (Q * Math.Cos(u))), Q * Math.Sin(u));
-        //        yield return pt;
-        //        if (i > 0 && i < n - 1)
-        //        {
-        //            yield return pt;
-        //        }
-        //    }
-        //}
 
         Point3DCollection GenerateCirclePoints(int numpts = 100, double radius = 1, CirclePlane plane = CirclePlane.PLANE_XY)
         {

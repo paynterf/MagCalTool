@@ -124,7 +124,6 @@
     </ApplicationDefinition>
     <Compile Include="CalViewModel.cs" />
     <Compile Include="RawViewModel.cs" />
-    <Compile Include="MyEllpsoidVisual.cs" />
     <Compile Include="WaitCursor.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
