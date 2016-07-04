@@ -14,7 +14,6 @@ namespace MyWPFMagViewer2
         //property variables
         private string _baudRate = string.Empty;
         private string _portName = string.Empty;
-        //private RichTextBox _displayWindow;
 
         //global manager variables
         private Color[] MessageColor = { Color.Blue, Color.Green, Color.Black, Color.Orange, Color.Red };
@@ -22,8 +21,6 @@ namespace MyWPFMagViewer2
 
         //added 03/29/16 for magnetometer support
         private string _linestr = string.Empty;
-        //private Point3D[] dotArray = new Point3D[100];
-        //private ViewportProfessional _viewport;
         private MainWindow _frmMgr;
 
         #endregion
@@ -57,17 +54,11 @@ namespace MyWPFMagViewer2
         #endregion
 
         #region Manager Constructors
-        //public CommPortManager(string baud, string par, string sBits, string dBits, 
-        //       string name, RichTextBox rtb, ViewportProfessional viewport)
-        //public CommPortManager(string baud, string par, string sBits, string dBits,
-        //       string name, frmMagManager form)
         public CommPortManager(string baud, string par, string sBits, string dBits,
                string name, MainWindow form)
         {
             _baudRate = baud;
             _portName = name;
-            //_displayWindow = rtb;
-            //_viewport = viewport; //03/29/16 added for access to eyeshot 3D viewport
             _frmMgr = form;
 
             //now add an event handler
@@ -82,8 +73,6 @@ namespace MyWPFMagViewer2
         {
             _baudRate = string.Empty;
             _portName = "COM1";
-            //_displayWindow = null;
-            //_viewport = null;//03/29/16 added for access to eyeshot 3D viewport
             _frmMgr = null;
 
             //add event handler
@@ -171,7 +160,6 @@ namespace MyWPFMagViewer2
                 //transfer the serial data to the main thread.  have to use Invoke for cross-thread ops
                 //06/11/16 use BeginInvoke vs Invoke to avoide port closing hangs (don't know why).
                 //see #3 tip at https://blogs.msdn.microsoft.com/bclteam/2006/10/10/top-5-serialport-tips-kim-hamilton/
-                //_frmMgr.Dispatcher.BeginInvoke(new Action(() => UpdateTextbox(linestr)));
                 _frmMgr.Dispatcher.BeginInvoke(new Action(() => _frmMgr.ProcessCommPortString(linestr)));
             }
             catch (Exception err)
@@ -179,23 +167,5 @@ namespace MyWPFMagViewer2
                 System.Windows.MessageBox.Show(err.Message);
             }
         }
-
-        //06/13/16 no longer needed - now using ProcessCommPortString() in MainWindow.xaml.cs
-        //public void UpdateTextbox(string msg)
-        //{
-        //    try
-        //    {
-        //        _frmMgr.tbox_RawMagData.Text += msg;
-        //        _frmMgr.lbl_NumRtbLines.Content = _frmMgr.tbox_RawMagData.LineCount;
-        //        _frmMgr.tbox_RawMagData.ScrollToEnd();
-
-        //        //add point to raw viewport
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw;
-        //    }
-        //}
     }
 }

@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CalViewModel.cs" company="Helix Toolkit">
+// <copyright file="MagViewerGeometryModel.cs" company="Helix Toolkit">
 //   Copyright (c) 2014 Helix Toolkit contributors
 // </copyright>
 // <summary>
@@ -22,21 +22,10 @@ namespace MyWPFMagViewer2
     /// <summary>
     /// Provides a ViewModel for the Main window 'Raw' viewport.
     /// </summary>
-    public class RawViewModel
+    public class RawViewModel:ViewportGeometryModel
     {
-        enum CirclePlane
-        {
-            PLANE_XY,
-            PLANE_XZ,
-            PLANE_YZ
-        }
-
-        //private int m_numberOfPoints;
-        private PointsVisual3D m_pointsVisual; //3D point cloud for magnetometer points
-        private PointsVisual3D selPointsVisual;//contains selected points from m_pointsVisual
-        private Point3DCollection m_points;
-        private const int POINTSIZE = 6; //display size for magnetometer points
-        private List<int> m_selidxlist = new List<int>();//contains indices into mag points collection for selected points
+        private PointsVisual3D m_selpointsVisual;//contains selected points from m_pointsVisual
+       private List<int> m_selidxlist = new List<int>();//contains indices into mag points collection for selected points
 
 
         public PointsVisual3D rawpointsVisual
@@ -49,20 +38,7 @@ namespace MyWPFMagViewer2
         public PointsVisual3D selpointsVisual
         { get
             {
-                return selPointsVisual;
-            }
-        }
-
-        public Point3DCollection Points
-        {
-            get
-            {
-                return m_points;
-            }
-
-            set
-            {
-                m_points = value;
+                return m_selpointsVisual;
             }
         }
 
@@ -70,7 +46,7 @@ namespace MyWPFMagViewer2
         {
             get
             {
-                return selPointsVisual.Points.Count;
+                return m_selpointsVisual.Points.Count;
             }
         }
 
@@ -82,125 +58,17 @@ namespace MyWPFMagViewer2
             }
         }
 
-        public HelixViewport3D view3d { get; set; }
-        public MainWindow main_window { get; set; }
-        public System.Windows.Media.Media3D.Model3D ViewportGeometryModel { get; set; }
-
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="MainViewModel"/> class.
+        /// Initializes a new instance of the <see cref="RawViewModel"/> class.
         /// </summary>
-        public RawViewModel(HelixViewport3D view, MainWindow main)
+        public RawViewModel(HelixViewport3D view, MainWindow main):base(view, main)
         {
-            view3d = view;
-            main_window = main;
-
-            //generated points are only used on startup so there is something to see in the viewport
-            Points = new Point3DCollection(GeneratePoints(100, 10.3));
-
-            // Create a model group - this contains all the 3D models to be displayed
-            var modelGroup = new Model3DGroup();
-
-            //'raw' and 'selected' points aren't part of model group - they are added directly to the view
-            m_pointsVisual = new PointsVisual3D { Color = Colors.Red, Size = POINTSIZE };
-            //m_pointsVisual = new PointsVisual3D { Color = Colors.Green, Size = POINTSIZE };
-            m_pointsVisual.Points = Points;
             m_pointsVisual.SetName("magpoints");
-            view3d.Children.Add(m_pointsVisual);
 
-            selPointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 1.5 * POINTSIZE };
-            selPointsVisual.SetName("selpoints");
-            view3d.Children.Add(selPointsVisual);
+            m_selpointsVisual = new PointsVisual3D { Color = Colors.Yellow, Size = 1.5 * POINTSIZE };
+            m_selpointsVisual.SetName("selpoints");
+            view3d.Children.Add(m_selpointsVisual);
 
-            // Create materials for reference circles (TubeVisual3D objects)
-            var greenMaterial = MaterialHelper.CreateMaterial(Colors.Green);
-            var redMaterial = MaterialHelper.CreateMaterial(Colors.Red);
-            var blueMaterial = MaterialHelper.CreateMaterial(Colors.Blue);
-            var insideMaterial = MaterialHelper.CreateMaterial(Colors.Yellow);
-
-
-            //reference circles using TubeVisual3D object
-            double thicknessfactor = 0.05; //established empirically
-            double diam = 1000; 
-
-            //ring in XY plane
-            TubeVisual3D t_xy = new TubeVisual3D();
-            //t_xy.Fill = System.Windows.Media.Brushes.Black;
-            Point3DCollection p3dc = GenerateCirclePoints(36, diam, CirclePlane.PLANE_XY);
-            t_xy.Diameter = thicknessfactor*diam; //1% factor emperically determined
-            t_xy.Material = redMaterial;
-            t_xy.Path = p3dc;
-            modelGroup.Children.Add(t_xy.Model);
-
-            //ring in Xz plane
-            TubeVisual3D t_xz = new TubeVisual3D();
-            t_xz.Material = greenMaterial;
-            p3dc = GenerateCirclePoints(36, diam, CirclePlane.PLANE_XZ);
-            t_xz.Material = greenMaterial;
-            t_xz.Path = p3dc;
-            t_xz.Diameter = t_xy.Diameter;
-            modelGroup.Children.Add(t_xz.Model);
-
-            ////ring in yz plane
-            TubeVisual3D t_yz = new TubeVisual3D();
-            p3dc = GenerateCirclePoints(36, diam, CirclePlane.PLANE_YZ);
-            t_yz.Diameter = t_xy.Diameter;
-            t_yz.Material = blueMaterial;
-            t_yz.Path = p3dc;
-            modelGroup.Children.Add(t_yz.Model);
-
-            // Set the property, which will be bound to the Content property of the ModelVisual3D (see MainWindow.xaml)
-            ViewportGeometryModel = modelGroup;
-        }
-
-        private Point3DCollection GeneratePoints(int n, double time)
-        {
-            Point3DCollection pc = new Point3DCollection();
-            const double R = 2;
-            const double Q = 0.5;
-            for (int i = 0; i < n; i++)
-            {
-                double t = Math.PI * 2 * i / (n - 1);
-                double u = (t * 24) + (time * 5);
-                var pt = new Point3D(Math.Cos(t) * (R + (Q * Math.Cos(u))), Math.Sin(t) * (R + (Q * Math.Cos(u))), Q * Math.Sin(u));
-                pc.Add(pt);
-            }
-            return pc;
-        }
-
-        Point3DCollection GenerateCirclePoints(int numpts = 100, double radius = 1, CirclePlane plane = CirclePlane.PLANE_XY)
-        {
-            double d_theta = Math.PI * 2 / numpts;
-            Point3DCollection p3dc = new Point3DCollection();
-
-            switch (plane)
-            {
-                case CirclePlane.PLANE_XY:
-                    for (int i = 0; i <= numpts; i++)
-                    {
-                        p3dc.Add(new Point3D(Math.Cos(i * d_theta) * radius, Math.Sin(i * d_theta) * radius, 0));
-                        Debug.Print("point " + i + ": " + p3dc[i].ToString());
-                    }
-                    break;
-                case CirclePlane.PLANE_XZ:
-                    for (int i = 0; i <= numpts; i++)
-                    {
-                        p3dc.Add(new Point3D(Math.Cos(i * d_theta) * radius, 0, Math.Sin(i * d_theta) * radius));
-                        Debug.Print("point " + i + ": " + p3dc[i].ToString());
-                    }
-                    break;
-                case CirclePlane.PLANE_YZ:
-                    for (int i = 0; i <= numpts; i++)
-                    {
-                        p3dc.Add(new Point3D(0, Math.Cos(i * d_theta) * radius, Math.Sin(i * d_theta) * radius));
-                        Debug.Print("point " + i + ": " + p3dc[i].ToString());
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            return p3dc;
         }
 
         public void Rawview_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -209,12 +77,12 @@ namespace MyWPFMagViewer2
             Debug.Print("At top of MouseDown event, Mouse position " + mousept.ToString());
 
             //code to print out current selected point list
-            if (selPointsVisual != null)
+            if (m_selpointsVisual != null)
             {
-                int selcount = selPointsVisual.Points.Count;
+                int selcount = m_selpointsVisual.Points.Count;
                 for (int i = 0; i < selcount; i++)
                 {
-                    Point3D selpt = selPointsVisual.Points[i];
+                    Point3D selpt = m_selpointsVisual.Points[i];
                     Debug.Print("selected pt at index " + i + " = ("
                         + selpt.X.ToString("F2") + ", "
                         + selpt.Y.ToString("F2") + ", "
@@ -255,9 +123,9 @@ namespace MyWPFMagViewer2
             //Step2: transfer any currently selected points back to main points list unless SHIFT key is down
             if ((Keyboard.Modifiers & ModifierKeys.Shift) != ModifierKeys.Shift)
             {
-                if (selPointsVisual != null)
+                if (m_selpointsVisual != null)
                 {
-                    int selcount = selPointsVisual.Points.Count;
+                    int selcount = m_selpointsVisual.Points.Count;
                     int magptcount = m_pointsVisual.Points.Count;
                     Debug.Print("selcount = " + selcount + ", magptcount = " + magptcount);
                     if (selcount > 0)
@@ -265,7 +133,7 @@ namespace MyWPFMagViewer2
                         for (int i = 0; i < selcount; i++)
                         {
                             //get selected point 
-                            Point3D selpt = selPointsVisual.Points[i];
+                            Point3D selpt = m_selpointsVisual.Points[i];
                             string selptstr = selpt.X.ToString("F2") + ","
                                             + selpt.Y.ToString("F2") + ","
                                             + selpt.Z.ToString("F2");
@@ -274,7 +142,7 @@ namespace MyWPFMagViewer2
                                 + m_pointsVisual.Points.Count);
 
                             //add it to pointsVisual
-                            m_pointsVisual.Points.Add(selPointsVisual.Points[i]);
+                            m_pointsVisual.Points.Add(m_selpointsVisual.Points[i]);
                             int newcount = m_pointsVisual.Points.Count;
 
                             //check that point got added properly
@@ -286,7 +154,7 @@ namespace MyWPFMagViewer2
                             Debug.Print("point (" + newptstr + ") added to pointsVsiual at index " + (newcount - 1)
                                 + ". Count now " + newcount);
                         }
-                        selPointsVisual.Points.Clear();
+                        m_selpointsVisual.Points.Clear();
                     }
                 }
             }
@@ -351,12 +219,12 @@ namespace MyWPFMagViewer2
                         + newcount);
 
                     //add this point to selPointsVisual
-                    selPointsVisual.Points.Add(selvispt);
+                    m_selpointsVisual.Points.Add(selvispt);
 
                     //testing - print out added point
-                    int addedcount = selPointsVisual.Points.Count;
+                    int addedcount = m_selpointsVisual.Points.Count;
                     Point3D addedpt = new Point3D();
-                    addedpt = selPointsVisual.Points[addedcount - 1];
+                    addedpt = m_selpointsVisual.Points[addedcount - 1];
                     string addedptstr = addedpt.X.ToString("F2") + ","
                                     + addedpt.Y.ToString("F2") + ","
                                     + addedpt.Z.ToString("F2");
@@ -403,7 +271,7 @@ namespace MyWPFMagViewer2
 
                 //Step1: Clear list of selected indices, and all points from selPointsVisual.Points list
                 m_selidxlist.Clear();
-                selPointsVisual.Points.Clear(); //added 06/21/16
+                m_selpointsVisual.Points.Clear(); //added 06/21/16
 
                 //Step2: Iterate through all m_pointsVisual points & copy index of any qualifying points to m_selidxlist
                 int ptidx = 0;

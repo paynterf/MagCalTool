@@ -24,9 +24,6 @@ namespace MyWPFMagViewer2
     /// </summary>
     public partial class MainWindow : Window
     {
-        //private const int POINTSIZE = 6; //display size for magnetometer points
-        //private List<int> m_selidxlist = new List<int>();//contains indices into mag points collection for selected points
- 
         //06/07/16 copied in from MagManager2
         CommPortManager commMgr = new CommPortManager();
         private Octave octave; //Octave object described in Octave.cs
@@ -46,18 +43,18 @@ namespace MyWPFMagViewer2
         //public bool bPtArrayUpdated = false;
         private bool bCommPortOpen = false;
         //private const int MIN_COMP_POINTS = 100;
-        private RawViewModel rawmodel;
-        private CalViewModel calmodel;
+        public RawViewModel rawmodel;
+        private ViewportGeometryModel calmodel;
 
         public MainWindow()
         {
             InitializeComponent();
 
             //connect raw/cal viewports to their respective geometry model classes
-            rawmodel = new RawViewModel(vp_raw, this);
-            calmodel = new CalViewModel(vp_cal, this);
-            vp_raw.DataContext = rawmodel; //this ties RawViewModel.cs to vp_raw
-            vp_cal.DataContext = calmodel; //this ties CalViewModel.cs to vp_cal
+            rawmodel = new RawViewModel(vp_raw, this); //ctor creates an empty 3D model & loads it into the raw view's 'GeometryModel' property
+            calmodel = new ViewportGeometryModel(vp_cal, this);//ctor creates an empty 3D model & loads it into the calibrated view's 'GeometryModel' property
+            vp_raw.DataContext = rawmodel; //this tells vp_raw to use the 'rawmodel' object's 'GeometryModel' property
+            vp_cal.DataContext = calmodel; //this tells vp_raw to use the 'calmodel' object's 'GeometryModel' property
 
             //populate textblock control
             tbox_RawMagData.Text = string.Empty;
@@ -74,40 +71,10 @@ namespace MyWPFMagViewer2
             tbOctaveScriptFolder.Text = Properties.Settings.Default.OctaveScriptFolder;
         }
 
-        ////this function is just to generate a static set of test points
-        //private static IEnumerable<Point3D> GeneratePoints(int n, double time)
-        //{
-        //    //Purpose: Generate animated array of points
-        //    //Inputs:
-        //    //  n = Integer denoting number of points to display
-        //    //  time = elapsed time in msec since start of program - used to animate point positions
-
-        //    //Debug.Print("GeneratePoints time = " + time);
-
-        //    const double R = 2;
-        //    const double Q = 0.5;
-        //    for (int i = 0; i < n; i++)
-        //    {
-        //        double t = Math.PI * 2 * i / (n - 1);
-        //        double u = (t * 24) + (time * 5);
-        //        var pt = new Point3D(Math.Cos(t) * (R + (Q * Math.Cos(u))), Math.Sin(t) * (R + (Q * Math.Cos(u))), Q * Math.Sin(u));
-        //        if (i > 0 && i < n - 1)
-        //        {
-        //            yield return pt;
-        //        }
-        //    }
-        //}
-
         private void vp_raw_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             rawmodel.Rawview_MouseDown(sender, e);
         }
-
-
-        //private void vp_cal_MouseDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    Debug.Print("In vp_cal_MouseDown");
-        //}
 
         private void frmMainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -163,11 +130,9 @@ namespace MyWPFMagViewer2
             tbOctavePath.Background = (bOctaveExeFileExists) ? Brushes.LightGreen : Brushes.LightPink;
 
             //text view stats labels
-            //tbox_RawMagData.Text = tbox_RawMagData.Text.Trim();
             lbl_NumRtbLines.Content = (tbox_RawMagData.Text.Length > 0) ? tbox_RawMagData.LineCount.ToString() : "0";
 
             //raw view stats labels
-            //lbl_AvgRadius.Content = GetRawAvgRadius().ToString("F2");
             lbl_AvgRadius.Content = rawmodel.GetRawAvgRadius().ToString("F2");
             lbl_NumPoints.Content = rawmodel.RawPointCount;
             lbl_SelPoints.Content = rawmodel.SelPointCount;
@@ -579,13 +544,6 @@ namespace MyWPFMagViewer2
 
         }
 
-        //public void AddPointToRaw3DView(Vector3D v3d)
-        //{
-        //    //devDept.Eyeshot.Standard.Point pt = new devDept.Eyeshot.Standard.Point(v3d, Color.Red);
-        //    //pt.EntityData = v3d;//Point objects don't have position prop - so do it this way
-        //    //vp_Raw.Entities.Add(pt);
-        //}
-
         private void VerifyOctaveExeFile(string exefilename)
         {
             string prestr = "I can't seem to find the ";
@@ -671,7 +629,6 @@ namespace MyWPFMagViewer2
             try
             {
                 octave.ExecuteCommand(cmdstr);
-                //displaystr = DisplayMatrixSample("S");
                 double[][] m = octave.GetMatrix("S");
                 //displaystr = DisplayMatrixSample("S",m);
                 //System.Windows.MessageBox.Show(displaystr);
@@ -773,7 +730,6 @@ namespace MyWPFMagViewer2
         //05/13/16 abstracted vector acquisition to calling fcn
         private string DisplayVectorSample(string v, double[] c)
         {
-            //double[] c = octave.GetVector(v);
             string str = "size of " + v + " = " + c.Length.ToString() + Environment.NewLine;
             str += v + " = ";
             for (int i = 0; i < c.Length; i++)
@@ -793,20 +749,7 @@ namespace MyWPFMagViewer2
                 pt3D.X = Caldata[i][0];
                 pt3D.Y = Caldata[i][1];
                 pt3D.Z = Caldata[i][2];
-                //m_CalpointsVisual.Points.Add(new Point3D(pt3D.X, pt3D.Y, pt3D.Z));
                 calmodel.calpointsVisual.Points.Add(new Point3D(pt3D.X, pt3D.Y, pt3D.Z));
-            }
-
-            //draw unit radius reference circles if selected
-            if (chk_RefCircles.IsChecked.Value)
-            {
-                Point3D cenpt = new Point3D(0, 0, 0);
-                //Ellipse ell = new Ellipse(Plane.XY, cenpt, 1, 1, Color.Red);
-                //vp_Calibrated.Entities.Add(ell);
-                //ell = new Ellipse(Plane.YZ, cenpt, 1, 1, Color.Green);
-                //vp_Calibrated.Entities.Add(ell);
-                //ell = new Ellipse(Plane.ZX, cenpt, 1, 1, Color.Blue);
-                //vp_Calibrated.Entities.Add(ell);
             }
 
             vp_cal.UpdateLayout();
@@ -883,7 +826,6 @@ namespace MyWPFMagViewer2
             //Plan:  All selected points should be in selPointsVisual.Points collection, so can just clear
             //      this collection and update 
 
-            //selPointsVisual.Points.Clear();
             rawmodel.selpointsVisual.Points.Clear();
             UpdateControls();
         }
@@ -896,7 +838,6 @@ namespace MyWPFMagViewer2
             var dlg = new CommonOpenFileDialog();
             dlg.Title = "Save All Currently Displayed Raw Magnetometer Points";
             dlg.IsFolderPicker = false;
-            //dlg.InitialDirectory = Environment.CurrentDirectory;
             dlg.InitialDirectory = tbOctaveScriptFolder.Text;
             dlg.DefaultExtension = ".txt";
             dlg.AddToMostRecentlyUsedList = false;
@@ -991,7 +932,6 @@ namespace MyWPFMagViewer2
             dlg.Title = "Save Currently Displayed Compensation Values";
             dlg.IsFolderPicker = false;
             dlg.InitialDirectory = Environment.CurrentDirectory;
-            //dlg.InitialDirectory = tbOctaveScriptFolder.Text;
             dlg.DefaultExtension = ".txt";
             dlg.AddToMostRecentlyUsedList = false;
             dlg.AllowNonFileSystemItems = false;
@@ -1050,6 +990,14 @@ namespace MyWPFMagViewer2
             }
 
             UpdateControls(); //updates textbox background color
+        }
+
+        private void chk_RefCircles_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Controls.CheckBox cbx = (System.Windows.Controls.CheckBox)sender;
+            bool check = cbx.IsChecked ?? false; //'??' needed in case cbx is null
+            rawmodel.DrawRefCircles(vp_raw, rawmodel.GetRawAvgRadius(), check);
+            calmodel.DrawRefCircles(vp_raw, 1, check);
         }
     }
 }

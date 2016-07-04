@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CalViewModel.cs" company="Helix Toolkit">
+// <copyright file="MagViewerGeometryModel.cs" company="Helix Toolkit">
 //   Copyright (c) 2014 Helix Toolkit contributors
 // </copyright>
 // <summary>
@@ -16,19 +16,19 @@ namespace MyWPFMagViewer2
     using HelixToolkit.Wpf;
 
     /// <summary>
-    /// Provides a ViewModel for the Main window 'Calibrated' viewport.
+    /// Provides a ViewModel for the Main window viewport.
     /// </summary>
-    public class CalViewModel
+    public class ViewportGeometryModel
     {
-        enum CirclePlane
+        public enum CirclePlane
         {
             PLANE_XY,
             PLANE_XZ,
             PLANE_YZ
         }
 
-        private PointsVisual3D m_pointsVisual; //3D point cloud for magnetometer points
-        private Point3DCollection m_points;
+        protected PointsVisual3D m_pointsVisual; //3D point cloud for magnetometer points
+        protected Point3DCollection m_points;
 
         public PointsVisual3D calpointsVisual
         {
@@ -53,13 +53,15 @@ namespace MyWPFMagViewer2
 
         public HelixViewport3D view3d { get; set; }
         public MainWindow main_window { get; set; }
-        public Model3D ViewportGeometryModel { get; set; }
-        private const int POINTSIZE = 6; //display size for magnetometer points
+        public Model3D GeometryModel { get; set; } //this is bound to the viewport
+        protected const int POINTSIZE = 6; //display size for magnetometer points
+
+        private Model3DGroup modelGroup;
 
         /// <summary>
-        /// Initializes a new instance of the CalViewModel class.
+        /// Initializes a new instance of the MagViewerGeometryModel class.
         /// </summary>
-        public CalViewModel(HelixViewport3D view, MainWindow main)
+        public ViewportGeometryModel(HelixViewport3D view, MainWindow main)
         {
             view3d = view;
             main_window = main;
@@ -71,56 +73,63 @@ namespace MyWPFMagViewer2
             m_pointsVisual.SetName("calpoints");
             view3d.Children.Add(m_pointsVisual);
 
-            // Create a model group
-            var modelGroup = new Model3DGroup();
-
-
-            // Create some materials
-            var greenMaterial = MaterialHelper.CreateMaterial(Colors.Green);
-            var redMaterial = MaterialHelper.CreateMaterial(Colors.Red);
-            var blueMaterial = MaterialHelper.CreateMaterial(Colors.Blue);
-            var insideMaterial = MaterialHelper.CreateMaterial(Colors.Yellow);
-
-
-            //reference circles using TubeVisual3D object
-            double thicknessfactor = 0.05; //established empirically
-            double diam = 1; //in cal view, reference circle radius is always 1
-
-            //ring in XY plane
-            TubeVisual3D t_xy = new TubeVisual3D();
-            //t_xy.Fill = System.Windows.Media.Brushes.Black;
-            Point3DCollection p3dc = GenerateCirclePoints(36, diam, CirclePlane.PLANE_XY);
-            t_xy.Diameter = thicknessfactor*diam; //1% factor emperically determined
-            t_xy.Material = redMaterial;
-            t_xy.Path = p3dc;
-            modelGroup.Children.Add(t_xy.Model);
-
-            //ring in Xz plane
-            TubeVisual3D t_xz = new TubeVisual3D();
-            t_xz.Material = greenMaterial;
-            p3dc = GenerateCirclePoints(36, diam, CirclePlane.PLANE_XZ);
-            t_xz.Material = greenMaterial;
-            t_xz.Path = p3dc;
-            t_xz.Diameter = t_xy.Diameter;
-            modelGroup.Children.Add(t_xz.Model);
-
-            ////ring in yz plane
-            TubeVisual3D t_yz = new TubeVisual3D();
-            p3dc = GenerateCirclePoints(36, diam, CirclePlane.PLANE_YZ);
-            t_yz.Diameter = t_xy.Diameter;
-            t_yz.Material = blueMaterial;
-            t_yz.Path = p3dc;
-            modelGroup.Children.Add(t_yz.Model);
-
-            // Set the property, which will be bound to the Content property of the ModelVisual3D (see MainWindow.xaml)
-            ViewportGeometryModel = modelGroup;
+            DrawRefCircles(view3d); //this creates an empty model and attaches it to the viewport
         }
 
-        /// <summary>
-        /// Gets or sets the model.
-        /// </summary>
-        /// <value>The model.</value>
-        //public Model3D ViewportGeometryModel { get; set; }
+        public void DrawRefCircles(HelixViewport3D viewport, double radius = 1, bool bEnable = false)
+        {
+            //// Create a model group
+            if (modelGroup == null)
+            {
+                 modelGroup = new Model3DGroup();// Create an empty model group if necessary
+            }
+            else //already exists - remove all children so we can start over
+            {
+                modelGroup.Children.Clear();
+            }
+
+            if (bEnable) //if checkbox state is 'checked', create the ref circle objects
+            {
+                // Create the materials (colors) we will need
+                var greenMaterial = MaterialHelper.CreateMaterial(Colors.Green);
+                var redMaterial = MaterialHelper.CreateMaterial(Colors.Red);
+                var blueMaterial = MaterialHelper.CreateMaterial(Colors.Blue);
+
+                //create reference circles using TubeVisual3D objects
+                //probably should do this using transforms, but don't know how :-(
+                double thicknessfactor = 0.05; //established empirically
+
+                //ring in XY plane
+                TubeVisual3D t_xy = new TubeVisual3D();
+                //t_xy.Fill = System.Windows.Media.Brushes.Black;
+                Point3DCollection p3dc = GenerateCirclePoints(36, radius, CirclePlane.PLANE_XY);
+                t_xy.Diameter = thicknessfactor * radius; //1% factor emperically determined
+                t_xy.Material = blueMaterial; //to match viewport coord sys colors
+                t_xy.Path = p3dc;
+                modelGroup.Children.Add(t_xy.Model);
+
+                //ring in Xz plane
+                TubeVisual3D t_xz = new TubeVisual3D();
+                t_xz.Material = greenMaterial;
+                p3dc = GenerateCirclePoints(36, radius, CirclePlane.PLANE_XZ);
+                t_xz.Material = greenMaterial; //to match viewport coord sys colors
+                t_xz.Path = p3dc;
+                t_xz.Diameter = t_xy.Diameter;
+                modelGroup.Children.Add(t_xz.Model);
+
+                ////ring in yz plane
+                TubeVisual3D t_yz = new TubeVisual3D();
+                p3dc = GenerateCirclePoints(36, radius, CirclePlane.PLANE_YZ);
+                t_yz.Diameter = t_xy.Diameter;
+                t_yz.Material = redMaterial; //to match viewport coord sys colors
+                t_yz.Path = p3dc;
+                modelGroup.Children.Add(t_yz.Model);
+            }
+
+            // GeometryModel is bound to HelixViewport3D with the line
+            //  <ModelVisual3D Content="{Binding GeometryModel}"/> in MainWindow.xaml)
+            GeometryModel = modelGroup;
+        }
 
         public Point3DCollection GeneratePoints(int n, double time)
         {
@@ -137,7 +146,7 @@ namespace MyWPFMagViewer2
             return pc;
         }
 
-        Point3DCollection GenerateCirclePoints(int numpts = 100, double radius = 1, CirclePlane plane = CirclePlane.PLANE_XY)
+        public Point3DCollection GenerateCirclePoints(int numpts = 100, double radius = 1, CirclePlane plane = CirclePlane.PLANE_XY)
         {
             double d_theta = Math.PI * 2 / numpts;
             Point3DCollection p3dc = new Point3DCollection();
