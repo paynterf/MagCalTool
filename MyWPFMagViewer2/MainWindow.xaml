@@ -35,7 +35,7 @@
             <!-- Remember to add light to the scene -->
             <h:SunLight/>
 
-            <!-- The content of this visual is defined in CalViewModel.cs -->
+            <!-- The content of this visual is defined in ViewportGeometryModel.cs -->
             <ModelVisual3D Content="{Binding GeometryModel}"/>
 
             <!-- You can also add elements here in the xaml -->
