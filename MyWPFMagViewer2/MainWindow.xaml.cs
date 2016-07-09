@@ -980,6 +980,33 @@ namespace MyWPFMagViewer2
                     sw.WriteLine("Cx: " + lbl_Cy.Content);
                     sw.WriteLine("Cx: " + lbl_Cz.Content);
 
+                    //07/09/16 added to output values in format suitable for Frank's Mongoose_IMU Arduino program
+                        //struct s_magcalvalues
+                        //{
+                        //    //upper triangular spherical compensation matrix values
+                        //    float U11;
+                        //    float U12;
+                        //    float U13;
+                        //    float U22;
+                        //    float U23;
+                        //    float U33;
+
+                        //    //center offset
+                        //    float Cx;
+                        //    float Cy;
+                        //    float Cz;
+                        //};
+
+                    sw.WriteLine(); //blank line
+                    sw.WriteLine("Format suitable for Frank's Mongoose_IMU Arduino program");
+                    sw.WriteLine(); //blank line
+                    sw.WriteLine("s_magcalvalues magcalvals = (" + lbl_U11.Content + ", " + lbl_U12.Content + ", " 
+                        + lbl_U13.Content + ", ");
+                    sw.WriteLine(lbl_U22.Content + ", " + lbl_U23.Content + ", ");
+                    sw.WriteLine(lbl_U33.Content + ", ");
+                    sw.WriteLine(lbl_Cx.Content + ", " + lbl_Cy.Content + ", " + lbl_Cz.Content + ")");
+                    
+
                     Debug.Print("Saved Compensation values to " + savefile);
                     sw.Close();
                 }
