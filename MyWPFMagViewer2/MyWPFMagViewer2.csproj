@@ -122,6 +122,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="LabeledCoordSysVis3D.cs" />
     <Compile Include="ViewportGeometryModel.cs" />
     <Compile Include="RawViewModel.cs" />
     <Compile Include="WaitCursor.cs" />

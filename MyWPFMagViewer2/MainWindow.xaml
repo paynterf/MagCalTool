@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MyWPFMagViewer2"
         xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="EM Workbench Magnetometer Calibration Utility Version 2.1.2" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
+        Title="EM Workbench Magnetometer Calibration Utility Version 2.1.3" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
     <!--Main window grid-->
     <Grid>
         <Grid.ColumnDefinitions>
@@ -15,8 +15,7 @@
         </Grid.ColumnDefinitions>
 
         <!--Raw viewport-->
-        <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" CoordinateSystemHorizontalPosition="Center" 
-                           CoordinateSystemVerticalPosition="Center" Orthographic="True" 
+        <h:HelixViewport3D x:Name="vp_raw" Margin="45,290,547,130" MouseDown="vp_raw_MouseDown" Orthographic="True" 
                            Title="Raw Magnetometer Data" BorderThickness="2" BorderBrush="Black" 
                            Background="#FFFDFBFB" ShowCoordinateSystem="True" EnableCurrentPosition="True" ShowCameraTarget="False" Grid.ColumnSpan="2">
 
@@ -28,12 +27,16 @@
 
             <!-- You can also add elements here in the xaml -->
             <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>
+            <!--<local:LabeledCoordSysVis3D />-->
+            <h:CoordinateSystemVisual3D /> <!--added 07/12/16 for 'geometry-centered' vs 'viewport-centered' coord sys -->
+            <h:BillboardTextVisual3D Position="1.2 0 0" Text="X" />
+            <h:BillboardTextVisual3D Position="0 1.2 0" Text="Y" />
+            <h:BillboardTextVisual3D Position="0 0 1.2" Text="Z" />
         </h:HelixViewport3D>
 
         <!--Calibrated viewport-->
-        <h:HelixViewport3D x:Name="vp_cal" Margin="370,290,32,130" CoordinateSystemHorizontalPosition="Center" 
-                CoordinateSystemVerticalPosition="Center" Orthographic="True" ShowCoordinateSystem="True" 
-                Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB" IsPanEnabled="False" Grid.Column="1">
+        <h:HelixViewport3D x:Name="vp_cal" Margin="370,290,32,130" Orthographic="True" ShowCoordinateSystem="True" 
+                Title="Calibrated Magnetometer Data" BorderThickness="2" BorderBrush="Black" Background="#FFFDFBFB" Grid.Column="1">
 
 
             <!-- Remember to add light to the scene -->
@@ -44,6 +47,10 @@
 
             <!-- You can also add elements here in the xaml -->
             <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>
+            <h:CoordinateSystemVisual3D /> <!--added 07/12/16 for 'geometry-centered' vs 'viewport-centered' coord sys -->
+            <h:BillboardTextVisual3D Position="1.2 0 0" Text="X" />
+            <h:BillboardTextVisual3D Position="0 1.2 0" Text="Y" />
+            <h:BillboardTextVisual3D Position="0 0 1.2" Text="Z" />
         </h:HelixViewport3D>
 
 
