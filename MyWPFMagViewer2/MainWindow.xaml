@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MyWPFMagViewer2"
         xmlns:h="http://helix-toolkit.org/wpf" x:Name="frmMainWindow" x:Class="MyWPFMagViewer2.MainWindow"
         mc:Ignorable="d"
-        Title="EM Workbench Magnetometer Calibration Utility Version 2.1.3" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
+        Title="EM Workbench Magnetometer Calibration Utility Version 2.1.4" Height="850" Width="1000" Background="#FFDADADA" Loaded="frmMainWindow_Loaded" Closing="frmMainWindow_Closing" ResizeMode="CanMinimize">
     <!--Main window grid-->
     <Grid>
         <Grid.ColumnDefinitions>
@@ -27,11 +27,7 @@
 
             <!-- You can also add elements here in the xaml -->
             <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>
-            <!--<local:LabeledCoordSysVis3D />-->
-            <h:CoordinateSystemVisual3D /> <!--added 07/12/16 for 'geometry-centered' vs 'viewport-centered' coord sys -->
-            <h:BillboardTextVisual3D Position="1.2 0 0" Text="X" />
-            <h:BillboardTextVisual3D Position="0 1.2 0" Text="Y" />
-            <h:BillboardTextVisual3D Position="0 0 1.2" Text="Z" />
+            <local:LabeledCoordSysVis3D />
         </h:HelixViewport3D>
 
         <!--Calibrated viewport-->
@@ -47,10 +43,7 @@
 
             <!-- You can also add elements here in the xaml -->
             <h:GridLinesVisual3D Width="8" Length="8" MinorDistance="1" MajorDistance="1" Thickness="0.01"/>
-            <h:CoordinateSystemVisual3D /> <!--added 07/12/16 for 'geometry-centered' vs 'viewport-centered' coord sys -->
-            <h:BillboardTextVisual3D Position="1.2 0 0" Text="X" />
-            <h:BillboardTextVisual3D Position="0 1.2 0" Text="Y" />
-            <h:BillboardTextVisual3D Position="0 0 1.2" Text="Z" />
+            <local:LabeledCoordSysVis3D />
         </h:HelixViewport3D>
 
 
