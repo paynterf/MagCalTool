@@ -17,11 +17,11 @@ namespace MyWPFMagViewer2
         /// <summary>
         /// The arrow lengths property.
         /// </summary>
-        public static readonly DependencyProperty AxisLabelSizeProperty = DependencyProperty.Register(
-            "AxisLabelSize",
-            typeof(double),
+        public static readonly DependencyProperty AxisLabelFontSizeProperty = DependencyProperty.Register(
+            "AxisLabelFontSize",
+            typeof(int),
             typeof(LabeledCoordSysVis3D),
-            new UIPropertyMetadata(1.0, GeometryChanged));
+            new UIPropertyMetadata(12, GeometryChanged));
 
         ///// <summary>
         ///// The x axis label property.
@@ -78,16 +78,17 @@ namespace MyWPFMagViewer2
         ///   Gets or sets the label size.
         /// </summary>
         /// <value>The label size.</value>
-        public double AxisLabelSize
+        public int LabelFontSize
         {
             get
             {
-                return (double)this.GetValue(AxisLabelSizeProperty);
+                //return (double)this.GetValue(AxisLabelSizeProperty);
+                return (int)this.GetValue(AxisLabelFontSizeProperty);
             }
 
             set
             {
-                this.SetValue(AxisLabelSizeProperty, value);
+                this.SetValue(AxisLabelFontSizeProperty, value);
             }
         }
 
@@ -167,26 +168,26 @@ namespace MyWPFMagViewer2
         {
             base.OnGeometryChanged();
             //this.Children.Clear();
-            double h = this.AxisLabelSize;
+            //double h = this.AxisLabelSize;
 
             var xlabel = new BillboardTextVisual3D();
             xlabel.Text = XAxisLabel.ToString();
             xlabel.Foreground = new SolidColorBrush(this.XAxisColor);
-            xlabel.HeightFactor = AxisLabelSize;
+            xlabel.FontSize = LabelFontSize;
             xlabel.Position = new Point3D(ArrowLengths * 1.2, 0, 0);
             this.Children.Add(xlabel);
 
             var ylabel = new BillboardTextVisual3D();
             ylabel.Text = YAxisLabel.ToString();
             ylabel.Foreground = new SolidColorBrush(this.YAxisColor);
-            ylabel.HeightFactor = AxisLabelSize;
+            ylabel.FontSize = LabelFontSize;
             ylabel.Position = new Point3D(0, ArrowLengths * 1.2, 0);
             this.Children.Add(ylabel);
 
             var zlabel = new BillboardTextVisual3D();
             zlabel.Text = ZAxisLabel.ToString();
             zlabel.Foreground = new SolidColorBrush(this.ZAxisColor);
-            zlabel.HeightFactor = AxisLabelSize;
+            zlabel.FontSize = LabelFontSize;
             zlabel.Position = new Point3D(0, 0, ArrowLengths * 1.2);
             this.Children.Add(zlabel);
         }
