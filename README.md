@@ -6,3 +6,5 @@ This tool acquires 3D raw magnetometer data via the serial port, displays the ra
 Serial data is expected to be comma, space, or tab delimited.  The program accepts and displays 1,2, or 3D data, but of course calibration matrix generation is only valid for 3D data that sufficiently covers the entire sphere of measurements (sufficient here is usually 500-1000 points that generally covever the sphere.  More points ==> better calibration.
 
 You must have Octave installed for the calibration matrix generation step to work.  You can still record and visualize 3D magnetometer data, but the program calls Octave to run the MATLAB calibration routine
+
+19 July 2017 Note:  I have had one report that the viewer fails to properly view a set of 3D points when the host PC is set for a non-English region.  If this happens to you, please reset your region to English.
