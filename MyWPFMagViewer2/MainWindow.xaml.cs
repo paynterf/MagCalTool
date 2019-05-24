@@ -42,7 +42,8 @@ namespace MyWPFMagViewer2
         //public bool bStringAvail = false;
         //public bool bPtArrayUpdated = false;
         private bool bCommPortOpen = false;
-        //private const int MIN_COMP_POINTS = 100;
+        //private const int MIN_COMP_POINTS = 100; //uncommented 05/23/19
+        private const int MIN_COMP_POINTS = 50; //uncommented 05/23/19
         public RawViewModel rawmodel;
         private ViewportGeometryModel calmodel;
 
@@ -141,6 +142,9 @@ namespace MyWPFMagViewer2
             //btn_Compute.IsEnabled = m_pointsVisual.Points.Count >= MIN_COMP_POINTS
             //    && bOctaveFunctionFileExists && bOctaveScriptFileExists;
 
+            //05/23/19 re-enabled check for sufficient points for calculation
+            btn_Compute.IsEnabled = rawmodel.RawPointCount >= MIN_COMP_POINTS;
+
             //Compensation value save button added 06 / 29 / 16
             string compvalstr = lbl_U11.Content.ToString();
             btn_SaveCompVals.IsEnabled = !compvalstr.Contains("U11");
@@ -149,6 +153,7 @@ namespace MyWPFMagViewer2
         private void btn_ClearMagData_Click(object sender, EventArgs e)
         {
             tbox_RawMagData.Text = string.Empty;
+            UpdateRawMagView(); //added 05/23/19 so 'Compute' button gets disabled
             UpdateControls();
         }
 
@@ -408,52 +413,60 @@ namespace MyWPFMagViewer2
             //      convert text to 3D point if possible (might fail)
             //      add point to vp_raw Point collecton
             //  Step2: Refresh vp_raw viewport
+            //Notes:
+            //  05/23/19 - all code extracted to UpdateRawMagView() so can be called from other places
 
-            //Step1: clear vp_raw contents
-            rawmodel.selpointsVisual.Points.Clear();
-            rawmodel.rawpointsVisual.Points.Clear();
-            vp_raw.UpdateLayout();
+            UpdateRawMagView();
 
-            //Step2: Add all points to raw 3D view
-            StringReader sr = new StringReader(tbox_RawMagData.Text);
-            string linestr = string.Empty;
-            //int linenum = 1;
-            int linenum = 0;
-            int errnum = 0;
-            Point3D pt3d = new Point3D();
+            //Step3: Update Numpts and average radius labels
+            UpdateControls();
 
-            using (new WaitCursor())
-            {
-                //convert each line in text view to 3D point if possible, and add to m_pointsVisual.Points collection
-                while (sr.Peek() >= 0) //Peek() returns -1 at end
-                {
-                    //convert text to 3D point if possible (might fail)
-                    try
-                    {
-                        linestr = sr.ReadLine();
-                        if (linestr.Trim().Length > 0)
-                        {
-                            linenum++;
-                            pt3d = GetPoint3DFromString(linestr);
 
-                            //add point to vp_raw Point collecton
-                            rawmodel.rawpointsVisual.Points.Add(pt3d);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Print("GetVector3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
-                        errnum++;
-                    }
-                }
+            ////Step1: clear vp_raw contents
+            //rawmodel.selpointsVisual.Points.Clear();
+            //rawmodel.rawpointsVisual.Points.Clear();
+            //vp_raw.UpdateLayout();
 
-                //Step2: Refresh vp_raw viewport
-                Debug.Print("processed " + linenum + " lines with " + errnum + " errors");
-                vp_raw.UpdateLayout();
+            ////Step2: Add all points to raw 3D view
+            //StringReader sr = new StringReader(tbox_RawMagData.Text);
+            //string linestr = string.Empty;
+            ////int linenum = 1;
+            //int linenum = 0;
+            //int errnum = 0;
+            //Point3D pt3d = new Point3D();
 
-                //Step3: Update Numpts and average radius labels
-                UpdateControls();
-            }
+            //using (new WaitCursor())
+            //{
+            //    //convert each line in text view to 3D point if possible, and add to m_pointsVisual.Points collection
+            //    while (sr.Peek() >= 0) //Peek() returns -1 at end
+            //    {
+            //        //convert text to 3D point if possible (might fail)
+            //        try
+            //        {
+            //            linestr = sr.ReadLine();
+            //            if (linestr.Trim().Length > 0)
+            //            {
+            //                linenum++;
+            //                pt3d = GetPoint3DFromString(linestr);
+
+            //                //add point to vp_raw Point collecton
+            //                rawmodel.rawpointsVisual.Points.Add(pt3d);
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Debug.Print("GetVector3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
+            //            errnum++;
+            //        }
+            //    }
+
+            //    //Step2: Refresh vp_raw viewport
+            //    Debug.Print("processed " + linenum + " lines with " + errnum + " errors");
+            //    vp_raw.UpdateLayout();
+
+            //    //Step3: Update Numpts and average radius labels
+            //    UpdateControls();
+            //}
         }
 
         private void btn_Compute_Click(object sender, RoutedEventArgs e)
@@ -927,23 +940,43 @@ namespace MyWPFMagViewer2
         {
             Debug.Print("In btn_SaveCompVals_Click");
 
-            //Purpose: Save current compensation values to a text file
-            var dlg = new CommonOpenFileDialog();
-            dlg.Title = "Save Currently Displayed Compensation Values";
-            dlg.IsFolderPicker = false;
-            dlg.InitialDirectory = Environment.CurrentDirectory;
-            dlg.DefaultExtension = ".txt";
-            dlg.AddToMostRecentlyUsedList = false;
-            dlg.AllowNonFileSystemItems = false;
-            dlg.DefaultDirectory = Environment.CurrentDirectory;
-            dlg.EnsureFileExists = false;
-            dlg.EnsurePathExists = true;
-            dlg.EnsureReadOnly = false;
-            dlg.EnsureValidNames = true;
-            dlg.Multiselect = false;
-            dlg.ShowPlacesList = true;
+            //05/23/19 - just noticed the 'Save' dialog actually shows 'Open' - not 'Save' - oops!
+            ////Purpose: Save current compensation values to a text file
+            //var dlg = new CommonOpenFileDialog();
+            //dlg.Title = "Save Currently Displayed Compensation Values";
+            //dlg.IsFolderPicker = false;
+            //dlg.InitialDirectory = Environment.CurrentDirectory;
+            //dlg.DefaultExtension = ".txt";
+            //dlg.AddToMostRecentlyUsedList = false;
+            //dlg.AllowNonFileSystemItems = false;
+            //dlg.DefaultDirectory = Environment.CurrentDirectory;
+            //dlg.EnsureFileExists = false;
+            //dlg.EnsurePathExists = true;
+            //dlg.EnsureReadOnly = false;
+            //dlg.EnsureValidNames = true;
+            //dlg.Multiselect = false;
+            //dlg.ShowPlacesList = true;
 
-            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            //05/23/19 bugfix - use 'Save' vs 'Open' dialog
+            var dlg = new SaveFileDialog();
+            dlg.Title = "Save Currently Displayed Compensation Values";
+            //dlg.IsFolderPicker = false;
+            dlg.InitialDirectory = Environment.CurrentDirectory;
+            dlg.DefaultExt = ".txt";
+            //dlg.AddToMostRecentlyUsedList = false;
+            //dlg.AllowNonFileSystemItems = false;
+            //dlg.DefaultDirectory = Environment.CurrentDirectory;
+            //dlg.EnsureFileExists = false;
+            dlg.CheckPathExists = true;
+            dlg.DefaultExt = "txt";
+            dlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            dlg.FilterIndex = 1;
+            //dlg.EnsureReadOnly = false;
+            //dlg.EnsureValidNames = true;
+            //dlg.Multiselect = false;
+            //dlg.ShowPlacesList = true;
+
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 var savefile = dlg.FileName;
                 Debug.Print("Save file is: " + savefile);
@@ -1025,6 +1058,53 @@ namespace MyWPFMagViewer2
             bool check = cbx.IsChecked ?? false; //'??' needed in case cbx is null
             rawmodel.DrawRefCircles(vp_raw, rawmodel.GetRawAvgRadius(), check);
             calmodel.DrawRefCircles(vp_raw, 1, check);
+        }
+
+        //05/23/19 added to allow btn_ClearData() to also clear the raw mag view
+        private void UpdateRawMagView()
+        {
+            //Step1: clear vp_raw contents
+            rawmodel.selpointsVisual.Points.Clear();
+            rawmodel.rawpointsVisual.Points.Clear();
+            vp_raw.UpdateLayout();
+
+            //Step2: Add all points to raw 3D view
+            StringReader sr = new StringReader(tbox_RawMagData.Text);
+            string linestr = string.Empty;
+            //int linenum = 1;
+            int linenum = 0;
+            int errnum = 0;
+            Point3D pt3d = new Point3D();
+
+            using (new WaitCursor())
+            {
+                //convert each line in text view to 3D point if possible, and add to m_pointsVisual.Points collection
+                while (sr.Peek() >= 0) //Peek() returns -1 at end
+                {
+                    //convert text to 3D point if possible (might fail)
+                    try
+                    {
+                        linestr = sr.ReadLine();
+                        if (linestr.Trim().Length > 0)
+                        {
+                            linenum++;
+                            pt3d = GetPoint3DFromString(linestr);
+
+                            //add point to vp_raw Point collecton
+                            rawmodel.rawpointsVisual.Points.Add(pt3d);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Print("GetVector3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
+                        errnum++;
+                    }
+                }
+
+                //Step2: Refresh vp_raw viewport
+                Debug.Print("processed " + linenum + " lines with " + errnum + " errors");
+                vp_raw.UpdateLayout();
+            }
         }
     }
 }
