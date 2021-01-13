@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using HelixToolkit.Wpf;
 using System.Windows.Media.Media3D;
 using System.Diagnostics;
-using System.Windows.Input;
 using System.Windows.Threading;
 
 using System.Windows.Controls;
@@ -13,8 +11,6 @@ using System.IO;
 using System.Windows.Forms;
 
 //05/31/16 experiment
-using HelixToolkit.Wpf.SharpDX;
-using SharpDX;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace MyWPFMagViewer2
@@ -157,28 +153,29 @@ namespace MyWPFMagViewer2
             UpdateControls();
         }
 
-        public Vector3D GetVector3DFromString(string linestr)
-        {
-            Vector3D pt = new Vector3D();
+        //01/13/21 commmented out - not used anywhere
+        //public Vector3D GetVector3DFromString(string linestr)
+        //{
+        //    Vector3D pt = new Vector3D();
 
-            try
-            {
-                string[] ptstrArray = linestr.Split(',');
-                if (ptstrArray.Length == 3)
-                {
-                    pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
-                    pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
-                    pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
-                }
-            }
-            catch (Exception)
-            {
-                //System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
-                throw;
-            }
+        //    try
+        //    {
+        //        string[] ptstrArray = linestr.Split(',');
+        //        if (ptstrArray.Length == 3)
+        //        {
+        //            pt.X = System.Convert.ToDouble(ptstrArray[0].Trim());
+        //            pt.Y = System.Convert.ToDouble(ptstrArray[1].Trim());
+        //            pt.Z = System.Convert.ToDouble(ptstrArray[2].Trim());
+        //        }
+        //    }
+        //    catch (Exception)
+        //    {
+        //        //System.Windows.MessageBox.Show("Vector generation failed with message: " + e.Message);
+        //        throw;
+        //    }
 
-            return pt;
-        }
+        //    return pt;
+        //}
 
         private Point3D GetPoint3DFromString(string linestr)
         {
@@ -188,7 +185,9 @@ namespace MyWPFMagViewer2
             try
             {
                 //06/18/16 rev to accommodate 1,2,3 element data
-                string[] ptstrArray = linestr.Split(new char[] { ',', '\t', ' ' });
+                //01/13/21 bugfix: have to guard against empty strings in Split() operation
+                //string[] ptstrArray = linestr.Split(new char[] { ',', '\t', ' ' });
+                string[] ptstrArray = linestr.Split(new char[] { ',', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 switch (ptstrArray.Length)
                 {
                     case 1:
@@ -1096,7 +1095,9 @@ namespace MyWPFMagViewer2
                     }
                     catch (Exception ex)
                     {
-                        Debug.Print("GetVector3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
+                        //01/13/21 bugfix - typo
+                        //Debug.Print("GetVector3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
+                        Debug.Print("GetPoint3DFromString() Failed on line " + linenum + ": " + linestr + ": " + ex.Message);
                         errnum++;
                     }
                 }
