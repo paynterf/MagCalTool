@@ -13,3 +13,5 @@ You must have Octave installed for the calibration matrix generation step to wor
 
 It was possible to click on the 'Compute' button even with an empty data list - fixed
 The 'Save Vals To Text File...' button launched an 'Open File' dialog instead of a 'Save File' dialog - fixed
+
+28 March 2021: Added the 'MgnCalibration.m' and 'MagCalScript.m'files
